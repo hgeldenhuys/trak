@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "sessions": {
+    "cdfa69d2-de4c-4348-a693-37e75a0ab206": {
+      "name": "chief-walrus",
+      "created": "2025-12-11T00:39:47.037Z",
+      "source": "compact",
+      "manual": false
+    }
+  }
+}

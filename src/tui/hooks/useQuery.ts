@@ -1,0 +1,192 @@
+/**
+ * useQuery Hook - Reactive data fetching for TUI
+ *
+ * Provides automatic re-fetching when database changes occur,
+ * using the event bus for reactivity.
+ */
+
+import { useState, useEffect, useCallback } from 'react';
+import { eventBus } from '../../events';
+import type { BoardEventName } from '../../events';
+
+/**
+ * Table names that map to event prefixes
+ */
+type TableName = 'feature' | 'story' | 'task' | 'ac' | 'session';
+
+/**
+ * Event suffixes for CRUD operations
+ */
+const EVENT_SUFFIXES = ['created', 'updated', 'deleted', 'status-changed', 'verified', 'started', 'ended'] as const;
+
+/**
+ * Build all event names for a given table
+ */
+function getEventsForTable(table: TableName): BoardEventName[] {
+  const events: BoardEventName[] = [];
+  for (const suffix of EVENT_SUFFIXES) {
+    const eventName = `${table}:${suffix}` as BoardEventName;
+    // Only include valid event names
+    if (isValidEventName(eventName)) {
+      events.push(eventName);
+    }
+  }
+  return events;
+}
+
+/**
+ * Check if an event name is valid in BoardEvents
+ */
+function isValidEventName(name: string): name is BoardEventName {
+  const validEvents: string[] = [
+    'feature:created', 'feature:updated', 'feature:deleted',
+    'story:created', 'story:updated', 'story:deleted', 'story:status-changed',
+    'task:created', 'task:updated', 'task:deleted', 'task:status-changed',
+    'ac:created', 'ac:updated', 'ac:deleted', 'ac:verified',
+    'session:started', 'session:ended', 'session:updated',
+  ];
+  return validEvents.includes(name);
+}
+
+/**
+ * Options for useQuery hook
+ */
+export interface UseQueryOptions<T> {
+  /**
+   * Tables to watch for changes
+   * If empty, watches all tables (feature, story, task, ac, session)
+   */
+  dependencies?: TableName[];
+
+  /**
+   * Initial data to use before first fetch
+   */
+  initialData?: T;
+
+  /**
+   * Whether to enable automatic refetching
+   * @default true
+   */
+  enabled?: boolean;
+}
+
+/**
+ * Result of useQuery hook
+ */
+export interface UseQueryResult<T> {
+  /** Current data */
+  data: T;
+  /** Whether data is being refetched */
+  isLoading: boolean;
+  /** Number of times data has been refetched */
+  refetchCount: number;
+  /** Manually trigger a refetch */
+  refetch: () => void;
+}
+
+/**
+ * Reactive query hook that automatically refetches data when database changes
+ *
+ * @param queryFn - Function that fetches data (called synchronously)
+ * @param options - Configuration options
+ * @returns Query result with data and refetch function
+ *
+ * @example
+ * ```typescript
+ * // Watch all tables
+ * const { data: stories } = useQuery(() => storyRepo.findAll());
+ *
+ * // Watch specific tables
+ * const { data: tasks } = useQuery(
+ *   () => taskRepo.findByStoryId(storyId),
+ *   { dependencies: ['task'] }
+ * );
+ * ```
+ */
+export function useQuery<T>(
+  queryFn: () => T,
+  options: UseQueryOptions<T> = {}
+): UseQueryResult<T> {
+  const {
+    dependencies = [],
+    initialData,
+    enabled = true,
+  } = options;
+
+  // Initialize with either initialData or result of queryFn
+  const [data, setData] = useState<T>(() => {
+    if (initialData !== undefined) {
+      return initialData;
+    }
+    return queryFn();
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [refetchCount, setRefetchCount] = useState(0);
+
+  // Refetch function
+  const refetch = useCallback(() => {
+    setIsLoading(true);
+    try {
+      const newData = queryFn();
+      setData(newData);
+      setRefetchCount(c => c + 1);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [queryFn]);
+
+  // Subscribe to events
+  useEffect(() => {
+    if (!enabled) return;
+
+    // Determine which tables to watch
+    const tablesToWatch: TableName[] = dependencies.length > 0
+      ? dependencies
+      : ['feature', 'story', 'task', 'ac', 'session'];
+
+    // Build list of events to subscribe to
+    const eventsToWatch: BoardEventName[] = [];
+    for (const table of tablesToWatch) {
+      const tableEvents = getEventsForTable(table);
+      for (const event of tableEvents) {
+        eventsToWatch.push(event);
+      }
+    }
+
+    // Handler that refetches on any relevant event
+    const handler = () => {
+      setIsLoading(true);
+      try {
+        const newData = queryFn();
+        setData(newData);
+        setRefetchCount(c => c + 1);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Subscribe to all relevant events
+    for (const event of eventsToWatch) {
+      eventBus.on(event, handler);
+    }
+
+    // Cleanup subscriptions
+    return () => {
+      for (const event of eventsToWatch) {
+        eventBus.off(event, handler);
+      }
+    };
+  }, [enabled, dependencies.join(','), queryFn]);
+
+  return {
+    data,
+    isLoading,
+    refetchCount,
+    refetch,
+  };
+}
+
+/**
+ * Type alias for table names
+ */
+export type { TableName };

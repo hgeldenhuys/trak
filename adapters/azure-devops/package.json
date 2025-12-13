@@ -1,0 +1,30 @@
+{
+  "name": "trak-ado",
+  "version": "0.1.0",
+  "description": "Azure DevOps adapter daemon for trak - bidirectional sync with ADO boards",
+  "type": "module",
+  "main": "src/daemon.ts",
+  "bin": {
+    "trak-ado": "src/daemon.ts"
+  },
+  "scripts": {
+    "dev": "bun run src/daemon.ts",
+    "build": "bun run scripts/build.ts",
+    "test": "bun test"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "bun-types": "^1.3.4",
+    "typescript": "^5.5.3"
+  },
+  "keywords": [
+    "trak",
+    "azure-devops",
+    "ado",
+    "sync",
+    "adapter"
+  ],
+  "author": "",
+  "license": "MIT",
+  "private": true
+}

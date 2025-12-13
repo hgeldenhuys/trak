@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build executables
+        run: bun run build
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## Installation
+
+            ```bash
+            curl -fsSL https://raw.githubusercontent.com/hgeldenhuys/trak/main/install-binary.sh | bash
+            ```
+
+            Or manually download the binaries below.
+
+            ## Binaries
+
+            - `board-cli` - Command-line interface (~58MB)
+            - `board-tui` - Terminal UI (~62MB)
+
+            Requires macOS (darwin arm64). Linux builds coming soon.
+          files: |
+            dist/board-cli
+            dist/board-tui
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
