@@ -6,6 +6,9 @@
  */
 
 import { Database } from 'bun:sqlite';
+import { existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
 import { SCHEMA_VERSION, TABLES } from './schema';
 import * as migration001 from './migrations/001_initial';
 import * as migration002 from './migrations/002_notes_impediments_labels';
@@ -15,9 +18,86 @@ import * as migration005 from './migrations/005_task_files';
 import * as migration006 from './migrations/006_task_effort';
 
 /**
- * Default database path
+ * Local database filename (project-centric)
  */
-const DEFAULT_DB_PATH = '.board.db';
+const LOCAL_DB_NAME = '.board.db';
+
+/**
+ * Global database path (fallback)
+ */
+const GLOBAL_DB_DIR = '.board';
+const GLOBAL_DB_NAME = 'data.db';
+
+/**
+ * Resolve the database path using project-centric defaults
+ *
+ * Resolution order:
+ * 1. Explicit override path (if provided)
+ * 2. BOARD_DB_PATH environment variable
+ * 3. Local .board.db in current directory (if exists)
+ * 4. Global ~/.board/data.db (fallback, creates if needed)
+ *
+ * @param overridePath - Explicit path override (highest priority)
+ * @returns Resolved database path
+ */
+export function resolveDbPath(overridePath?: string): string {
+  // 1. Explicit override takes highest priority
+  if (overridePath) {
+    return overridePath;
+  }
+
+  // 2. Environment variable
+  const envPath = process.env.BOARD_DB_PATH;
+  if (envPath) {
+    return envPath;
+  }
+
+  // 3. Local .board.db in current directory (project-centric)
+  const localPath = join(process.cwd(), LOCAL_DB_NAME);
+  if (existsSync(localPath)) {
+    return localPath;
+  }
+
+  // 4. Global ~/.board/data.db (fallback)
+  const globalDir = join(homedir(), GLOBAL_DB_DIR);
+  if (!existsSync(globalDir)) {
+    mkdirSync(globalDir, { recursive: true });
+  }
+  return join(globalDir, GLOBAL_DB_NAME);
+}
+
+/**
+ * Check if a local project database exists in the current directory
+ *
+ * @returns true if .board.db exists in cwd
+ */
+export function hasLocalDb(): boolean {
+  return existsSync(join(process.cwd(), LOCAL_DB_NAME));
+}
+
+/**
+ * Get the local database path (whether it exists or not)
+ *
+ * @returns Path to .board.db in current directory
+ */
+export function getLocalDbPath(): string {
+  return join(process.cwd(), LOCAL_DB_NAME);
+}
+
+/**
+ * Get the global database path
+ *
+ * @returns Path to ~/.board/data.db
+ */
+export function getGlobalDbPath(): string {
+  return join(homedir(), GLOBAL_DB_DIR, GLOBAL_DB_NAME);
+}
+
+/**
+ * Default database path (for backwards compatibility)
+ * @deprecated Use resolveDbPath() instead
+ */
+const DEFAULT_DB_PATH = LOCAL_DB_NAME;
 
 /**
  * Database singleton instance

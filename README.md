@@ -86,6 +86,9 @@ The `TMPDIR` workaround is required for the OpenTUI native library.
 ## Quick Start
 
 ```bash
+# Initialize a project-local database (optional but recommended)
+board init
+
 # Create a feature (container for stories)
 board feature create -c NOTIFY -n "Notifications System"
 
@@ -111,15 +114,18 @@ board-tui
 
 | Option | Description |
 |--------|-------------|
-| `--db-path <path>` | SQLite database path (default: `~/.board/data.db`, env: `BOARD_DB_PATH`) |
+| `--db-path <path>` | SQLite database path (default: auto-resolved, env: `BOARD_DB_PATH`) |
 | `--actor <name>` | Actor name for history tracking (default: `cli`, env: `BOARD_ACTOR`) |
 | `--json` | Output as JSON |
 | `-v, --verbose` | Verbose output |
 
-**Database Location Priority:**
+**Database Location Priority (Project-Centric):**
 1. `--db-path` flag (highest priority)
 2. `BOARD_DB_PATH` environment variable
-3. `~/.board/data.db` (default)
+3. `.board.db` in current directory (if exists) - **project-local**
+4. `~/.board/data.db` (global fallback)
+
+This project-centric approach means each project can have its own isolated board.
 
 **Actor for History:**
 Set who is making changes for audit trail:
@@ -128,6 +134,26 @@ board --actor backend-dev story create ...
 # Or use environment variable
 export BOARD_ACTOR=backend-dev
 ```
+
+### Initialize (board init)
+
+Create a project-local `.board.db` in the current directory. This isolates your project's board from other projects.
+
+```bash
+# Initialize project-local database
+board init
+
+# Re-initialize (preserves data, runs migrations)
+board init --force
+
+# Check status
+board init  # "Already initialized" message if exists
+```
+
+The `init` command is:
+- **Idempotent** - Safe to run multiple times
+- **Non-destructive** - Does not delete existing data
+- **Auto-migrating** - Applies new schema migrations on --force
 
 ### Features
 
@@ -604,9 +630,31 @@ The board uses SQLite with WAL mode for concurrent access.
 
 Migrations run automatically on first use. Schema version is tracked in `schema_versions` table.
 
-### Multiple Databases
+### Multiple Databases / Project-Centric Workflow
 
-Use `--db-path` to work with different databases:
+**Recommended: Project-Local Databases**
+
+Each project gets its own `.board.db` via `board init`:
+
+```bash
+# In project-a/
+cd project-a
+board init
+board feature create -c FEAT -n "Feature"
+
+# In project-b/
+cd project-b
+board init
+board feature create -c OTHER -n "Other Feature"
+
+# Each project sees only its own data
+cd project-a && board story list  # Only project-a stories
+cd project-b && board story list  # Only project-b stories
+```
+
+**Manual Override**
+
+Use `--db-path` to explicitly specify a database:
 
 ```bash
 board --db-path project-a.db story list
@@ -691,6 +739,15 @@ For creating custom adapters, see [adapters/README.md](adapters/README.md).
 ## Changelog
 
 ### [Unreleased]
+
+### [0.5.0] - 2025-12-14
+
+#### Added
+- **Project-centric database resolution** - Local `.board.db` takes precedence over global
+  - `board init` command to initialize project-local database
+  - Resolution order: `--db-path` > `BOARD_DB_PATH` env > `.board.db` (local) > `~/.board/data.db` (global)
+  - TUI uses same resolution logic for consistent behavior
+  - Idempotent init (safe to run multiple times)
 
 ### [0.4.0] - 2025-12-13
 

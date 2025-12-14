@@ -7,10 +7,7 @@
  */
 
 import { Command, CommanderError } from 'commander';
-import { existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
-import { initDb, closeDb } from '../db';
+import { initDb, closeDb, resolveDbPath } from '../db';
 import { setOutputOptions, error, verbose } from './utils/output';
 import { setActor, initContextFromEnv } from '../context';
 import { enableAutoHistory } from '../history/auto-logger';
@@ -27,27 +24,18 @@ import { createDecisionCommand } from './commands/decision';
 import { createSessionCommand } from './commands/session';
 import { createHistoryCommand } from './commands/history';
 import { createDataCommand } from './commands/data';
+import { createInitCommand } from './commands/init';
 
 /**
  * Get the default database path
- * Priority: BOARD_DB_PATH env var > ~/.board/data.db
+ *
+ * Resolution order (via resolveDbPath):
+ * 1. BOARD_DB_PATH env var
+ * 2. Local .board.db in cwd (if exists) - project-centric
+ * 3. Global ~/.board/data.db (fallback)
  */
 function getDefaultDbPath(): string {
-  // Check environment variable first
-  const envPath = process.env.BOARD_DB_PATH;
-  if (envPath) {
-    return envPath;
-  }
-
-  // Default to ~/.board/data.db
-  const boardDir = join(homedir(), '.board');
-
-  // Create directory if it doesn't exist
-  if (!existsSync(boardDir)) {
-    mkdirSync(boardDir, { recursive: true });
-  }
-
-  return join(boardDir, 'data.db');
+  return resolveDbPath();
 }
 
 /**
@@ -148,6 +136,9 @@ function createProgram(): Command {
 
   // Data command with export, import subcommands
   program.addCommand(createDataCommand());
+
+  // Init command to create project-local database
+  program.addCommand(createInitCommand());
 
   return program;
 }

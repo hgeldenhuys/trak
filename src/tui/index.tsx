@@ -10,7 +10,7 @@
 import { createCliRenderer } from '@opentui/core';
 import { createRoot } from '@opentui/react';
 import { App } from './App';
-import { initDb } from '../db';
+import { initDb, resolveDbPath } from '../db';
 
 /**
  * Reset terminal to clean state
@@ -51,17 +51,15 @@ function resetTerminal(): void {
 }
 
 /**
- * Get database path from environment or use default
- * Matches CLI default path: ~/.board/data.db
+ * Get database path using shared resolution logic
+ *
+ * Resolution order (via resolveDbPath):
+ * 1. BOARD_DB_PATH env var
+ * 2. Local .board.db in cwd (if exists) - project-centric
+ * 3. Global ~/.board/data.db (fallback)
  */
 function getDatabasePath(): string {
-  if (process.env.BOARD_DB_PATH) {
-    return process.env.BOARD_DB_PATH;
-  }
-  // Default to ~/.board/data.db (same as CLI)
-  const { homedir } = require('os');
-  const { join } = require('path');
-  return join(homedir(), '.board', 'data.db');
+  return resolveDbPath();
 }
 
 /**
