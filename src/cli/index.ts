@@ -48,7 +48,7 @@ function createProgram(): Command {
   program
     .name('board')
     .description('Board CLI for story and task management')
-    .version('0.3.0')
+    .version('0.4.0')
     .option('--db-path <path>', `Path to SQLite database (env: BOARD_DB_PATH)`, defaultDbPath)
     .option('--actor <name>', 'Actor name for history tracking (env: BOARD_ACTOR)', process.env.BOARD_ACTOR || 'cli')
     .option('--json', 'Output as JSON', false)

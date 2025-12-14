@@ -57,7 +57,12 @@ interface WorkItemApiResponse {
 
 interface SyncApiResponse {
   success: boolean;
-  itemsSynced: number;
+  itemsProcessed: number;
+  itemsCreated?: number;
+  itemsUpdated?: number;
+  itemsSkipped?: number;
+  errors?: number;
+  completedAt?: string;
 }
 
 interface CreateWorkItemApiResponse {
@@ -182,6 +187,7 @@ describe('APIServer', () => {
   let apiServer: APIServer;
   let mockDaemon: Daemon;
   let mockClient: ADOClient;
+  let mockSyncService: { syncNow: ReturnType<typeof mock>; syncWorkItem: ReturnType<typeof mock> };
   const serverConfig: ServerConfig = { port: 0, host: '127.0.0.1' }; // Port 0 = random available port
 
   beforeEach(() => {
@@ -191,6 +197,12 @@ describe('APIServer', () => {
       updateWorkItemState: mock(() => Promise.resolve(createMockWorkItem({ fields: { ...createMockWorkItem().fields, 'System.State': 'Active' } }))),
       getBoardWorkItems: mock(() => Promise.resolve([createMockWorkItem(), createMockWorkItem({ id: 124 })])),
     } as unknown as ADOClient;
+
+    // Create a shared mock sync service so tests can override it
+    mockSyncService = {
+      syncNow: mock(() => Promise.resolve({ success: true, itemsProcessed: 2, itemsCreated: 1, itemsUpdated: 1, itemsSkipped: 0, errors: [], completedAt: new Date().toISOString() })),
+      syncWorkItem: mock(() => Promise.resolve(createMockWorkItem())),
+    };
 
     // Create mock daemon
     mockDaemon = {
@@ -211,10 +223,7 @@ describe('APIServer', () => {
           return mapping[status] || 'New';
         },
       })),
-      getSyncService: mock(() => ({
-        syncNow: mock(() => Promise.resolve({ itemsProcessed: 2, itemsCreated: 1, itemsUpdated: 1, itemsSkipped: 0, errors: 0 })),
-        syncWorkItem: mock(() => Promise.resolve(createMockWorkItem())),
-      })),
+      getSyncService: mock(() => mockSyncService),
     } as unknown as Daemon;
 
     apiServer = new APIServer(mockDaemon, serverConfig);
@@ -507,7 +516,8 @@ describe('APIServer', () => {
     });
 
     it('returns 404 when work item not found', async () => {
-      (mockClient.getWorkItem as ReturnType<typeof mock>).mockImplementation(
+      // Override the shared syncWorkItem mock to throw ADONotFoundError
+      mockSyncService.syncWorkItem.mockImplementation(
         () => Promise.reject(new ADONotFoundError('Work item', 999))
       );
 
@@ -534,7 +544,8 @@ describe('APIServer', () => {
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      expect(data.itemsSynced).toBe(2);
+      // API returns itemsProcessed not itemsSynced
+      expect(data.itemsProcessed).toBe(2);
     });
 
     it('returns 503 when daemon is not running', async () => {

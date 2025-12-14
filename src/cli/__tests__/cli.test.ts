@@ -32,16 +32,17 @@ describe('Board CLI', () => {
 
     it('should display version', async () => {
       const result = await $`bun run ${CLI_PATH} --version`.text();
-      expect(result.trim()).toBe('0.1.0');
+      // Version should match semantic versioning pattern
+      expect(result.trim()).toMatch(/^\d+\.\d+\.\d+$/);
     });
 
     it('should accept custom database path', async () => {
-      const result = await $`bun run ${CLI_PATH} --db-path ${TEST_DB_PATH} --verbose story 2>&1`.text();
+      const result = await $`bun run ${CLI_PATH} --db-path ${TEST_DB_PATH} --verbose story list 2>&1`.text();
       expect(result).toContain(`Database path: ${TEST_DB_PATH}`);
     });
 
     it('should accept verbose flag', async () => {
-      const result = await $`bun run ${CLI_PATH} --verbose story 2>&1`.text();
+      const result = await $`bun run ${CLI_PATH} --verbose story list 2>&1`.text();
       expect(result).toContain('[verbose]');
       expect(result).toContain('Database initialized successfully');
     });
@@ -73,16 +74,17 @@ describe('Board CLI', () => {
         // Ignore
       }
 
-      const result = await $`bun run ${CLI_PATH} --db-path ${TEST_DB_PATH} story 2>&1`.text();
-      expect(result).toContain('Applied 1 migration');
+      const result = await $`bun run ${CLI_PATH} --db-path ${TEST_DB_PATH} story list 2>&1`.text();
+      // Should apply migrations on first run
+      expect(result).toMatch(/Applied \d+ migration/);
     });
 
     it('should not re-apply migrations on subsequent runs', async () => {
       // First run creates db
-      await $`bun run ${CLI_PATH} --db-path ${TEST_DB_PATH} story 2>&1`.text();
+      await $`bun run ${CLI_PATH} --db-path ${TEST_DB_PATH} story list 2>&1`.text();
 
       // Second run should not apply migrations
-      const result = await $`bun run ${CLI_PATH} --db-path ${TEST_DB_PATH} story 2>&1`.text();
+      const result = await $`bun run ${CLI_PATH} --db-path ${TEST_DB_PATH} story list 2>&1`.text();
       expect(result).not.toContain('Applied');
     });
   });

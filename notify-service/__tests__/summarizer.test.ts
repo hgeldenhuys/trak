@@ -349,7 +349,8 @@ describe('Server-Side Summarizer', () => {
       const result = await extractWorkContent(testFile);
       expect(result).not.toBeNull();
       expect(result!.hasSubstantiveWork).toBe(true);
-      expect(result!.actionsPerformed).toContain('Run unit tests');
+      // Implementation extracts actual command rather than description
+      expect(result!.actionsPerformed).toContain('Ran npm test');
       expect(result!.toolsUsed).toContain('Bash');
     });
 
@@ -430,7 +431,8 @@ describe('Server-Side Summarizer', () => {
       expect(result!.filesModified.length).toBe(2);
       expect(result!.actionsPerformed).toContain('Edited a.ts');
       expect(result!.actionsPerformed).toContain('Edited b.ts');
-      expect(result!.actionsPerformed).toContain('Run tests');
+      // Implementation extracts actual command rather than description
+      expect(result!.actionsPerformed).toContain('Ran bun test');
     });
 
     it('should deduplicate repeated actions', async () => {

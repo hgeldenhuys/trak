@@ -86,9 +86,12 @@ export interface TrackerEvents {
  */
 class TransactionTracker extends EventEmitter {
   private activeTransactions = new Map<string, TransactionState>();
+  private durationThresholdMs: number;
 
-  constructor() {
+  constructor(options?: { durationThresholdMs?: number }) {
     super();
+    // Default to 0 (always notify) if not specified
+    this.durationThresholdMs = options?.durationThresholdMs ?? 0;
   }
 
   /**
@@ -273,13 +276,18 @@ class TransactionTracker extends EventEmitter {
           console.error('[tracker] Failed to mark transaction completed in SQLite:', err);
         }
 
+        // Determine if we should notify based on duration threshold
+        const shouldNotify = durationMs >= this.durationThresholdMs;
+
         if (DEBUG) {
           const durationSec = (durationMs / 1000).toFixed(1);
-          console.error(`[tracker] Transaction completed: ${durationSec}s`);
+          console.error(`[tracker] Transaction completed: ${durationSec}s (notify: ${shouldNotify})`);
         }
 
-        this.emit('transaction:completed', completed, true);
-        this.emit('notification:triggered', completed);
+        this.emit('transaction:completed', completed, shouldNotify);
+        if (shouldNotify) {
+          this.emit('notification:triggered', completed);
+        }
 
         return completed;
       }
@@ -364,4 +372,19 @@ export function getTransactionTracker(): TransactionTracker {
     }
   }
   return tracker;
+}
+
+/**
+ * Create a new TransactionTracker instance for testing
+ * @param options.durationThresholdMs - Minimum duration in ms before triggering notification
+ */
+export function initTransactionTracker(options?: { durationThresholdMs?: number }): TransactionTracker {
+  return new TransactionTracker(options);
+}
+
+/**
+ * Reset the singleton tracker (for testing only)
+ */
+export function resetTransactionTracker(): void {
+  tracker = null;
 }
