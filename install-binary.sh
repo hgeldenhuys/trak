@@ -21,16 +21,26 @@ echo ""
 PLATFORM=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
-if [[ "$PLATFORM" != "darwin" ]]; then
-    echo -e "${RED}Error: Only macOS (darwin) is supported currently.${NC}"
-    echo "Linux builds coming soon."
+# Normalize architecture names
+if [[ "$ARCH" == "x86_64" ]]; then
+    ARCH="x64"
+fi
+
+# Validate platform
+if [[ "$PLATFORM" != "darwin" && "$PLATFORM" != "linux" ]]; then
+    echo -e "${RED}Error: Unsupported platform: $PLATFORM${NC}"
+    echo "Supported platforms: darwin (macOS), linux"
     exit 1
 fi
 
-if [[ "$ARCH" != "arm64" && "$ARCH" != "x86_64" ]]; then
+# Validate architecture
+if [[ "$ARCH" != "arm64" && "$ARCH" != "x64" ]]; then
     echo -e "${RED}Error: Unsupported architecture: $ARCH${NC}"
+    echo "Supported architectures: arm64, x64"
     exit 1
 fi
+
+echo -e "${BLUE}Platform: ${PLATFORM}-${ARCH}${NC}"
 
 # Get latest release tag
 echo -e "${BLUE}Fetching latest release...${NC}"
@@ -51,11 +61,11 @@ trap "rm -rf $TMP_DIR" EXIT
 
 # Download binaries
 echo ""
-echo -e "${BLUE}Downloading board-cli...${NC}"
-curl -fSL "$DOWNLOAD_BASE/board-cli" -o "$TMP_DIR/board-cli" --progress-bar
+echo -e "${BLUE}Downloading board-cli-${PLATFORM}-${ARCH}...${NC}"
+curl -fSL "$DOWNLOAD_BASE/board-cli-${PLATFORM}-${ARCH}" -o "$TMP_DIR/board-cli" --progress-bar
 
-echo -e "${BLUE}Downloading board-tui...${NC}"
-curl -fSL "$DOWNLOAD_BASE/board-tui" -o "$TMP_DIR/board-tui" --progress-bar
+echo -e "${BLUE}Downloading board-tui-${PLATFORM}-${ARCH}...${NC}"
+curl -fSL "$DOWNLOAD_BASE/board-tui-${PLATFORM}-${ARCH}" -o "$TMP_DIR/board-tui" --progress-bar
 
 # Make executable
 chmod +x "$TMP_DIR/board-cli" "$TMP_DIR/board-tui"
@@ -84,10 +94,17 @@ if command -v board &> /dev/null; then
     echo ""
     echo -e "${BLUE}Usage:${NC}"
     echo "  board --help           # CLI help"
-    echo "  TMPDIR=/tmp board-tui  # Launch TUI"
-    echo ""
-    echo -e "${BLUE}Recommended alias (add to ~/.zshrc):${NC}"
-    echo "  alias trak='TMPDIR=/tmp board-tui'"
+    if [[ "$PLATFORM" == "darwin" ]]; then
+        echo "  TMPDIR=/tmp board-tui  # Launch TUI (macOS workaround)"
+        echo ""
+        echo -e "${BLUE}Recommended alias (add to ~/.zshrc):${NC}"
+        echo "  alias trak='TMPDIR=/tmp board-tui'"
+    else
+        echo "  board-tui              # Launch TUI"
+        echo ""
+        echo -e "${BLUE}Recommended alias (add to ~/.bashrc):${NC}"
+        echo "  alias trak='board-tui'"
+    fi
 else
     echo -e "${RED}Installation may have failed. Check $INSTALL_DIR${NC}"
     exit 1

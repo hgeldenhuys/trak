@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# Wrapper script for board TUI
+# Executes the binary downloaded by postinstall
+# Includes TMPDIR workaround for macOS OpenTUI native library
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BINARY="$SCRIPT_DIR/.board-tui-binary"
+
+if [ ! -f "$BINARY" ]; then
+    echo "Error: board-tui binary not found at $BINARY"
+    echo ""
+    echo "The postinstall script may not have run correctly."
+    echo "Try reinstalling:"
+    echo "  npm install -g trak-board"
+    echo ""
+    echo "Or install manually:"
+    echo "  curl -fsSL https://raw.githubusercontent.com/hgeldenhuys/trak/main/install-binary.sh | bash"
+    exit 1
+fi
+
+# macOS requires TMPDIR workaround for OpenTUI native library
+case "$(uname -s)" in
+    Darwin*)
+        export TMPDIR=/tmp
+        ;;
+esac
+
+exec "$BINARY" "$@"

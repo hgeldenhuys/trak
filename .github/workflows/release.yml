@@ -25,9 +25,18 @@ jobs:
       - name: Run tests
         run: bun test --timeout 30000
 
-  build-and-release:
+  build:
     needs: test
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
     steps:
       - uses: actions/checkout@v4
 
@@ -42,6 +51,31 @@ jobs:
       - name: Build executables
         run: bun run build
 
+      - name: Rename binaries with platform suffix
+        run: |
+          mv dist/board-cli dist/board-cli-${{ matrix.platform }}-${{ matrix.arch }}
+          mv dist/board-tui dist/board-tui-${{ matrix.platform }}-${{ matrix.arch }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            dist/board-cli-${{ matrix.platform }}-${{ matrix.arch }}
+            dist/board-tui-${{ matrix.platform }}-${{ matrix.arch }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
       - name: Get version from tag
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
@@ -53,26 +87,42 @@ jobs:
           body: |
             ## Installation
 
+            ### Via npm (recommended)
+            ```bash
+            npm install -g trak-board
+            ```
+
+            ### Via install script
             ```bash
             curl -fsSL https://raw.githubusercontent.com/hgeldenhuys/trak/main/install-binary.sh | bash
             ```
 
-            Or manually download the binaries below.
+            ### Manual download
+            Download the appropriate binary for your platform below.
 
             ## Binaries
 
-            - `board-cli` - Command-line interface (~58MB)
-            - `board-tui` - Terminal UI (~62MB)
+            | Platform | CLI | TUI |
+            |----------|-----|-----|
+            | macOS (Apple Silicon) | `board-cli-darwin-arm64` | `board-tui-darwin-arm64` |
+            | Linux (x64) | `board-cli-linux-x64` | `board-tui-linux-x64` |
 
-            Requires macOS (darwin arm64). Linux builds coming soon.
+            ## Usage
+            ```bash
+            board --help           # CLI help
+            TMPDIR=/tmp board-tui  # Launch TUI (macOS)
+            board-tui              # Launch TUI (Linux)
+            ```
           files: |
-            dist/board-cli
-            dist/board-tui
+            dist/board-cli-darwin-arm64
+            dist/board-tui-darwin-arm64
+            dist/board-cli-linux-x64
+            dist/board-tui-linux-x64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-npm:
-    needs: test
+    needs: release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

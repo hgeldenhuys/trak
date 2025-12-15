@@ -21,8 +21,8 @@
   ],
   "main": "dist/index.js",
   "bin": {
-    "board": "src/cli/index.ts",
-    "board-tui": "src/tui/bootstrap.ts"
+    "board": "bin/board",
+    "board-tui": "bin/board-tui"
   },
   "scripts": {
     "build": "bun run build:cli && bun run build:tui",
@@ -33,9 +33,11 @@
     "board": "bun run src/cli/index.ts",
     "tui": "TMPDIR=/tmp bun run src/tui/index.tsx",
     "test": "bun test",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "postinstall": "node scripts/postinstall.js"
   },
   "files": [
+    "bin/",
     "dist/",
     "src/",
     "scripts/",
