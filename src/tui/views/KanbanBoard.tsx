@@ -26,11 +26,11 @@ import { TaskStatus, type Task } from '../../types';
 /**
  * Column configuration for the Kanban board
  * Maps task status to display properties
+ * Note: Blocked tasks are shown in dedicated BlockedView (Tab 4)
  */
 const COLUMNS: { status: TaskStatus; title: string; color: string }[] = [
   { status: TaskStatus.PENDING, title: 'To Do', color: 'gray' },
   { status: TaskStatus.IN_PROGRESS, title: 'In Progress', color: 'yellow' },
-  { status: TaskStatus.BLOCKED, title: 'Blocked', color: 'red' },
   { status: TaskStatus.COMPLETED, title: 'Done', color: 'green' },
 ];
 

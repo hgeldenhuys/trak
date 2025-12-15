@@ -10,7 +10,7 @@ import { useKeyboard, useTerminalDimensions } from '@opentui/react';
 import { TextAttributes, type KeyEvent } from '@opentui/core';
 
 // Import views
-import { KanbanBoard, StoryDetailView, ListView } from './views';
+import { KanbanBoard, StoryDetailView, ListView, BlockedView, RetrospectivesView, SystemInfoView } from './views';
 import { ViewSwitcher } from './components';
 import type { ViewType } from './components';
 import { useStory } from './hooks';
@@ -22,12 +22,15 @@ const VIEW_LABELS: Record<ViewType, string> = {
   board: 'Board View',
   story: 'Story View',
   list: 'List View',
+  blocked: 'Blocked View',
+  retros: 'Retrospectives',
+  systeminfo: 'System Info',
 };
 
 /**
  * All available views in cycle order
  */
-const VIEWS: ViewType[] = ['board', 'story', 'list'];
+const VIEWS: ViewType[] = ['board', 'story', 'list', 'blocked', 'retros', 'systeminfo'];
 
 /**
  * App state for sharing between components
@@ -107,6 +110,15 @@ export function App() {
     }
     if (event.name === '3') {
       setCurrentView('list');
+    }
+    if (event.name === '4') {
+      setCurrentView('blocked');
+    }
+    if (event.name === '5') {
+      setCurrentView('retros');
+    }
+    if (event.name === '0') {
+      setCurrentView('systeminfo');
     }
 
     // Escape to go back / clear selection
@@ -203,6 +215,36 @@ export function App() {
           />
         );
 
+      case 'blocked':
+        return (
+          <BlockedView
+            onSelectTask={(taskId) => setSelectedTaskId(taskId)}
+            onSelectStory={(storyId) => {
+              setSelectedStoryId(storyId);
+              setCurrentView('story');
+            }}
+            onEscape={() => setCurrentView('board')}
+          />
+        );
+
+      case 'retros':
+        return (
+          <RetrospectivesView
+            onSelectStory={(storyId) => {
+              setSelectedStoryId(storyId);
+              setCurrentView('story');
+            }}
+            onEscape={() => setCurrentView('board')}
+          />
+        );
+
+      case 'systeminfo':
+        return (
+          <SystemInfoView
+            onEscape={() => setCurrentView('board')}
+          />
+        );
+
       default:
         return <text fg="red">Unknown view: {currentView}</text>;
     }
@@ -253,7 +295,7 @@ export function App() {
         flexDirection="row"
       >
         <text fg="gray">
-          TAB:switch view  1/2/3:jump to view  ESC:back  q:quit
+          TAB:switch view  1-5,0:jump to view  ESC:back  q:quit
         </text>
       </box>
     </box>

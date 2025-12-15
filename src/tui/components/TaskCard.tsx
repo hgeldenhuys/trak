@@ -2,10 +2,12 @@
  * TaskCard Component - Individual task card for Kanban board
  *
  * Displays task information in a compact card format including:
+ * - Story code in border label
  * - Task title (truncated if too long)
- * - Story code
  * - Priority with color coding
  * - Assignee
+ * - Relative timestamp
+ * - Description preview
  *
  * IMPORTANT OpenTUI notes:
  * - Use `fg` for text color, not `color`
@@ -15,6 +17,7 @@
 
 import React from 'react';
 import type { Task, Priority } from '../../types';
+import { formatRelativeTime } from '../utils';
 
 /**
  * Priority color mapping
@@ -69,8 +72,15 @@ export function TaskCard({ task, storyCode, isFocused, onSelect }: TaskCardProps
   // Get assignee or default to 'Unassigned'
   const assignee = task.assignedTo || 'Unassigned';
 
-  // Build the metadata line as a complete string
-  const metadataLine = `${storyCode} | ${task.priority} | ${assignee}`;
+  // Get relative timestamp
+  const relativeTime = formatRelativeTime(task.updatedAt);
+
+  // Get description preview (first 30 chars)
+  const descriptionPreview = task.description
+    ? (task.description.length > 30
+        ? task.description.slice(0, 27) + '...'
+        : task.description)
+    : '';
 
   return (
     <box
@@ -83,16 +93,25 @@ export function TaskCard({ task, storyCode, isFocused, onSelect }: TaskCardProps
       paddingLeft={1}
       paddingRight={1}
     >
+      {/* Story code as header line */}
+      <box flexDirection="row" justifyContent="space-between">
+        <text fg={isFocused ? 'white' : 'magenta'}>{storyCode}</text>
+        <text fg={isFocused ? 'white' : 'gray'}>{relativeTime}</text>
+      </box>
+
       {/* Task title */}
       <text fg={isFocused ? 'white' : 'cyan'}>{title}</text>
 
-      {/* Metadata line - story code, priority, assignee */}
+      {/* Description preview if available */}
+      {descriptionPreview && (
+        <text fg={isFocused ? 'white' : 'gray'}>{descriptionPreview}</text>
+      )}
+
+      {/* Metadata line - priority, assignee */}
       <box flexDirection="row">
-        <text fg="gray">{storyCode}</text>
-        <text fg="gray">{' | '}</text>
         <text fg={priorityColor}>{task.priority}</text>
         <text fg="gray">{' | '}</text>
-        <text fg="gray">{assignee}</text>
+        <text fg={isFocused ? 'white' : 'gray'}>{assignee}</text>
       </box>
     </box>
   );

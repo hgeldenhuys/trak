@@ -14,11 +14,13 @@
 
 import React from 'react';
 import { TextAttributes } from '@opentui/core';
+import { taskRepository } from '../../repositories';
+import { TaskStatus } from '../../types';
 
 /**
  * Available view types
  */
-export type ViewType = 'board' | 'story' | 'list';
+export type ViewType = 'board' | 'story' | 'list' | 'blocked' | 'retros' | 'systeminfo';
 
 /**
  * Props for ViewSwitcher component
@@ -46,6 +48,9 @@ const VIEWS: ViewConfig[] = [
   { key: 'board', label: 'Board', shortcut: '1' },
   { key: 'story', label: 'Story', shortcut: '2' },
   { key: 'list', label: 'List', shortcut: '3' },
+  { key: 'blocked', label: 'Blocked', shortcut: '4' },
+  { key: 'retros', label: 'Retros', shortcut: '5' },
+  { key: 'systeminfo', label: 'System', shortcut: '0' },
 ];
 
 /**
@@ -69,17 +74,33 @@ export function ViewSwitcher({
   currentView,
   onViewChange,
 }: ViewSwitcherProps) {
+  // Get blocked task count for badge
+  let blockedCount = 0;
+  try {
+    const blockedTasks = taskRepository.findByStatus(TaskStatus.BLOCKED);
+    blockedCount = blockedTasks.length;
+  } catch {
+    // Database might not be initialized
+  }
+
   return (
     <box flexDirection="row" gap={2} paddingTop={1} paddingBottom={1} paddingLeft={1} paddingRight={1}>
       {VIEWS.map((view) => {
         const isActive = currentView === view.key;
+
+        // Add blocked count badge for blocked view
+        let label = view.label;
+        if (view.key === 'blocked' && blockedCount > 0) {
+          label = `${view.label} (${blockedCount})`;
+        }
+
         return (
           <text
             key={view.key}
-            fg={isActive ? 'cyan' : 'gray'}
+            fg={isActive ? 'cyan' : (view.key === 'blocked' && blockedCount > 0 ? 'red' : 'gray')}
             attributes={isActive ? TextAttributes.BOLD : undefined}
           >
-            {`[${view.shortcut}] ${view.label}`}
+            {`[${view.shortcut}] ${label}`}
           </text>
         );
       })}
