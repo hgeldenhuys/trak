@@ -31,7 +31,7 @@ describe('Key Generator', () => {
   test('generateSdkKey returns plain key and hash', () => {
     const { plainKey, hash } = generateSdkKey();
 
-    expect(plainKey).toMatch(/^tk_test_[a-z0-9]{32}$/);
+    expect(plainKey).toMatch(/^nsk_[a-z0-9]{32}$/);
     expect(hash).toHaveLength(64); // SHA-256 hex = 64 chars
   });
 
@@ -45,7 +45,7 @@ describe('Key Generator', () => {
   });
 
   test('hashSdkKey produces consistent hashes', () => {
-    const key = 'tk_test_test1234567890abcdefghijklmnop';
+    const key = 'nsk_test1234567890abcdefghijklmnop';
     const hash1 = hashSdkKey(key);
     const hash2 = hashSdkKey(key);
 
@@ -54,40 +54,40 @@ describe('Key Generator', () => {
   });
 
   test('hashSdkKey produces different hashes for different keys', () => {
-    const hash1 = hashSdkKey('tk_test_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
-    const hash2 = hashSdkKey('tk_test_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb');
+    const hash1 = hashSdkKey('nsk_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+    const hash2 = hashSdkKey('nsk_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb');
 
     expect(hash1).not.toBe(hash2);
   });
 
   test('isValidSdkKeyFormat validates correct keys', () => {
-    expect(isValidSdkKeyFormat('tk_test_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6')).toBe(true);
-    expect(isValidSdkKeyFormat('tk_test_00000000000000000000000000000000')).toBe(true);
-    expect(isValidSdkKeyFormat('tk_test_zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')).toBe(true);
+    expect(isValidSdkKeyFormat('nsk_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6')).toBe(true);
+    expect(isValidSdkKeyFormat('nsk_00000000000000000000000000000000')).toBe(true);
+    expect(isValidSdkKeyFormat('nsk_zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')).toBe(true);
   });
 
   test('isValidSdkKeyFormat rejects invalid keys', () => {
     // Wrong prefix
-    expect(isValidSdkKeyFormat('tk_mode_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6')).toBe(false);
+    expect(isValidSdkKeyFormat('sk_test_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6')).toBe(false);
     expect(isValidSdkKeyFormat('api_key_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6')).toBe(false);
 
     // Wrong length
-    expect(isValidSdkKeyFormat('tk_test_short')).toBe(false);
-    expect(isValidSdkKeyFormat('tk_test_toolongaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).toBe(false);
+    expect(isValidSdkKeyFormat('nsk_short')).toBe(false);
+    expect(isValidSdkKeyFormat('nsk_toolongaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).toBe(false);
 
     // Invalid characters (uppercase not allowed)
-    expect(isValidSdkKeyFormat('tk_test_A1B2c3d4e5f6g7h8i9j0k1l2m3n4o5p6')).toBe(false);
+    expect(isValidSdkKeyFormat('nsk_A1B2c3d4e5f6g7h8i9j0k1l2m3n4o5p6')).toBe(false);
 
     // Empty or null-like
     expect(isValidSdkKeyFormat('')).toBe(false);
-    expect(isValidSdkKeyFormat('tk_test_')).toBe(false);
+    expect(isValidSdkKeyFormat('nsk_')).toBe(false);
   });
 
   test('truncateKeyForLogging returns safe truncated key', () => {
-    const key = 'tk_test_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6';
+    const key = 'nsk_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6';
     const truncated = truncateKeyForLogging(key);
 
-    expect(truncated).toBe('tk_test_a1b2c3d4...');
+    expect(truncated).toBe('nsk_a1b2c3d4...');
     expect(truncated).not.toContain('e5f6g7h8'); // Rest of key not included
   });
 
@@ -148,7 +148,7 @@ describe('SDK Keys Repository', () => {
   });
 
   test('findByHash returns null for non-existent hash', () => {
-    const fakeHash = hashSdkKey('tk_test_nonexistent000000000000000000');
+    const fakeHash = hashSdkKey('nsk_nonexistent000000000000000000');
     const found = findByHash(fakeHash);
 
     expect(found).toBeNull();
@@ -310,7 +310,7 @@ describe('SDK Key Authentication Flow', () => {
 
   test('invalid key authentication fails', () => {
     // Try to authenticate with a key that was never created
-    const fakeKey = 'tk_test_fakekey00000000000000000000000';
+    const fakeKey = 'nsk_fakekey00000000000000000000000';
     const fakeHash = hashSdkKey(fakeKey);
 
     const found = findByHash(fakeHash);
