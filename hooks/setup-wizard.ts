@@ -2,7 +2,7 @@
 /**
  * Notification Server Setup Wizard
  *
- * Interactive wizard for configuring the notification server during Loom installation.
+ * Interactive wizard for configuring the notification server during notification system setup.
  * Offers two paths:
  *   (A) Create NEW local server - configure port, channels, and optional ngrok
  *   (B) Connect to EXISTING server - provide URL for remote mode
@@ -950,8 +950,8 @@ async function configureRemoteServer(): Promise<{ remoteUrl: string; sdkKey?: st
       if (!value || value.trim() === '') {
         return 'SDK key is required for remote server';
       }
-      if (!value.startsWith('tk_test_')) {
-        return 'Invalid SDK key format (should start with tk_test_)';
+      if (!value.startsWith('sk_live_')) {
+        return 'Invalid SDK key format (should start with sk_live_)';
       }
       return true;
     },
@@ -1008,7 +1008,7 @@ async function writeConfig(config: ServiceConfig): Promise<{ success: boolean; p
  * Per-project Discord configuration (NOTIFY-003)
  *
  * Allows each project to have its own Discord channel for notifications.
- * Stored in .agent/loom/notification-config.json within the project.
+ * Stored in .config/notification-config.json within the project.
  */
 async function configurePerProjectDiscord(): Promise<string | null> {
   console.log('\n--- Per-Project Discord Channel (Optional) ---\n');
@@ -1072,7 +1072,7 @@ async function configurePerProjectDiscord(): Promise<string | null> {
 /**
  * Write per-project notification config
  *
- * Creates .agent/loom/notification-config.json in the current project directory.
+ * Creates .config/notification-config.json in the current project directory.
  */
 interface PerProjectConfig {
   discordWebhookUrl?: string;
@@ -1080,8 +1080,8 @@ interface PerProjectConfig {
 }
 
 async function writePerProjectConfig(config: PerProjectConfig): Promise<{ success: boolean; path: string; error?: string }> {
-  const configPath = join(process.cwd(), '.agent/loom/notification-config.json');
-  const configDir = join(process.cwd(), '.agent/loom');
+  const configPath = join(process.cwd(), '.config/notification-config.json');
+  const configDir = join(process.cwd(), '.config');
 
   try {
     // Create directory if it doesn't exist

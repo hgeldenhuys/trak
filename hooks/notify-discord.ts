@@ -295,7 +295,7 @@ export function isConfigured(): boolean {
 if (import.meta.main) {
   const testNotification: DiscordNotification = {
     taskCompleted: 'Implemented notification system with TTS and Discord integration',
-    projectName: 'Claude Loom',
+    projectName: 'My Project',
     contextUsagePercent: 45,
     keyOutcomes: [
       'Created hook event logger',

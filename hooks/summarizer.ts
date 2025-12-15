@@ -27,7 +27,7 @@ const DEBUG = process.env.NOTIFICATION_DEBUG === 'true';
 // Last updated: 2025-12-08 - Removed files/tools from summary (per-turn tracking not available)
 const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const PROMPT_FILE = path.join(PROJECT_DIR, 'hooks/prompts/summary-prompt.md');
-const CONFIG_FILE = path.join(PROJECT_DIR, '.agent/loom/notification-config.json');
+const CONFIG_FILE = path.join(PROJECT_DIR, '.config/notification-config.json');
 const WIZARD_CONFIG_FILE = path.join(process.env.HOME || '', '.claude-notify/config.json');
 
 // Load wizard config if exists (from setup-wizard.ts)

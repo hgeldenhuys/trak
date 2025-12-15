@@ -3,8 +3,8 @@
  *
  * Utilities for generating and hashing SDK keys.
  *
- * Key format: tk_test_{32 random alphanumeric characters}
- * Example: tk_test_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+ * Key format: nsk_{32 random alphanumeric characters}
+ * Example: nsk_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
  *
  * Keys are generated using crypto.randomBytes() for cryptographic security.
  * Only the SHA-256 hash is stored server-side; the plain key is shown once.
@@ -16,7 +16,7 @@ import type { GeneratedKey } from '../types';
 /**
  * SDK key prefix for identification
  */
-const KEY_PREFIX = 'tk_test_';
+const KEY_PREFIX = 'nsk_';
 
 /**
  * Length of the random portion of the key (32 characters)
@@ -59,14 +59,14 @@ export function hashSdkKey(key: string): string {
 /**
  * Generate a new SDK key
  *
- * Creates a new key in the format tk_test_{32_random_chars} and returns
+ * Creates a new key in the format nsk_{32_random_chars} and returns
  * both the plain-text key (for display to user) and the hash (for storage).
  *
  * @returns Object with plainKey (show once) and hash (store in database)
  *
  * @example
  * const { plainKey, hash } = generateSdkKey();
- * // plainKey: "tk_test_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+ * // plainKey: "nsk_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
  * // hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
  */
 export function generateSdkKey(): GeneratedKey {

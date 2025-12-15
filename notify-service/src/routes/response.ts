@@ -5,7 +5,7 @@
  */
 
 import { marked } from 'marked';
-import { getResponse } from '../response-store';
+import { getResponse, getLatestResponseByProject } from '../response-store';
 
 const DEBUG = process.env.NOTIFY_SERVICE_DEBUG === 'true';
 
@@ -558,6 +558,76 @@ function render404Page(): string {
 }
 
 /**
+ * Render 404 page for project-specific route
+ */
+function render404ProjectPage(projectName: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>No Responses - ${escapeHtml(projectName)}</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #1a1a2e;
+      color: #eaeaea;
+    }
+    .container {
+      text-align: center;
+      padding: 32px;
+      max-width: 500px;
+    }
+    h1 {
+      font-size: 4rem;
+      color: #e94560;
+      margin-bottom: 16px;
+    }
+    .project-name {
+      font-size: 1.5rem;
+      color: #e94560;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    p {
+      color: #a0a0a0;
+      margin-bottom: 16px;
+    }
+    .hint {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 24px;
+    }
+    code {
+      background: #0d1117;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Consolas, Monaco, monospace;
+    }
+    a {
+      color: #e94560;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>404</h1>
+    <div class="project-name">${escapeHtml(projectName)}</div>
+    <p>No responses found for this project.</p>
+    <p>Responses are kept for 24 hours after creation.</p>
+    <p class="hint">Project names are case-sensitive. Make sure you're using the exact project name as it appears in your notifications.</p>
+  </div>
+</body>
+</html>`;
+}
+
+/**
  * Handle GET /response/:id request
  */
 export function handleResponse(id: string): Response {
@@ -593,6 +663,47 @@ export function handleResponse(id: string): Response {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'private, max-age=300',
+    },
+  });
+}
+
+/**
+ * Handle GET /project/:projectId/latest-response request
+ * Returns the most recent response for a given project
+ */
+export function handleProjectLatestResponse(projectName: string): Response {
+  if (DEBUG) {
+    console.error(`[response] Fetching latest response for project: ${projectName}`);
+  }
+
+  const entry = getLatestResponseByProject(projectName);
+
+  if (!entry) {
+    if (DEBUG) {
+      console.error(`[response] No responses found for project: ${projectName}`);
+    }
+    return new Response(render404ProjectPage(projectName), {
+      status: 404,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    });
+  }
+
+  const html = renderResponsePage(
+    entry.project,
+    entry.summary,
+    entry.fullResponse,
+    entry.metadata,
+    entry.createdAt,
+    entry.id,
+    !!entry.audioPath,
+    entry.userPrompt
+  );
+
+  return new Response(html, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'private, max-age=60', // Shorter cache for "latest"
     },
   });
 }

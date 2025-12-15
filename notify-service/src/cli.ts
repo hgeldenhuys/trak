@@ -266,7 +266,7 @@ async function handleWebhook(args: string[]): Promise<void> {
   const fs = await import('fs');
   const path = await import('path');
 
-  const CONFIG_PATH = path.join(process.cwd(), '.agent/loom/notification-config.json');
+  const CONFIG_PATH = path.join(process.cwd(), '.config/notification-config.json');
   const ALLOWED_DOMAINS = ['discord.com', 'discordapp.com'];
 
   interface ProjectNotifyConfig {
@@ -380,7 +380,7 @@ async function handleVoice(args: string[]): Promise<void> {
   const fs = await import('fs');
   const path = await import('path');
 
-  const CONFIG_PATH = path.join(process.cwd(), '.agent/loom/notification-config.json');
+  const CONFIG_PATH = path.join(process.cwd(), '.config/notification-config.json');
 
   interface ProjectNotifyConfig {
     discordWebhookUrl?: string;

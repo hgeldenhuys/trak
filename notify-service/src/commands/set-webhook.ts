@@ -9,13 +9,13 @@
  *   bun notify-service/src/commands/set-webhook.ts --show
  *   bun notify-service/src/commands/set-webhook.ts --clear
  *
- * This creates/updates .agent/loom/notification-config.json in the current directory.
+ * This creates/updates .config/notification-config.json in the current directory.
  */
 
 import fs from 'fs';
 import path from 'path';
 
-const CONFIG_PATH = path.join(process.cwd(), '.agent/loom/notification-config.json');
+const CONFIG_PATH = path.join(process.cwd(), '.config/notification-config.json');
 const ALLOWED_DOMAINS = ['discord.com', 'discordapp.com'];
 
 interface ProjectNotifyConfig {
@@ -89,7 +89,7 @@ Examples:
   set-webhook --show
 
 The configuration is stored in:
-  .agent/loom/notification-config.json
+  .config/notification-config.json
 `);
 }
 

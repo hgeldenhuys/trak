@@ -113,7 +113,7 @@ async function testAuthInvalid(baseUrl: string): Promise<{ passed: boolean; mess
   const res = await fetch(`${baseUrl}/notify`, {
     method: 'POST',
     headers: {
-      'Authorization': 'Bearer tk_test_invalid_key_12345',
+      'Authorization': 'Bearer sk_live_invalid_key_12345',
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({

@@ -225,6 +225,43 @@ class ResponseStore {
       console.error('[response-store] Cleared all entries');
     }
   }
+
+  /**
+   * Get the latest (most recent) response for a project
+   * @param projectName - The project name to filter by (case-sensitive)
+   * @returns The most recent response entry or null if none found
+   */
+  getLatestByProject(projectName: string): ResponseEntry | null {
+    let latestEntry: ResponseEntry | null = null;
+    let latestTime = 0;
+    const now = new Date();
+
+    for (const entry of this.store.values()) {
+      // Skip expired entries
+      if (now > entry.expiresAt) {
+        continue;
+      }
+
+      // Case-sensitive project name match
+      if (entry.project === projectName) {
+        const time = entry.createdAt.getTime();
+        if (time > latestTime) {
+          latestTime = time;
+          latestEntry = entry;
+        }
+      }
+    }
+
+    if (DEBUG) {
+      if (latestEntry) {
+        console.error(`[response-store] Found latest response for ${projectName}: ${latestEntry.id}`);
+      } else {
+        console.error(`[response-store] No responses found for project: ${projectName}`);
+      }
+    }
+
+    return latestEntry;
+  }
 }
 
 // Export singleton accessor
@@ -250,4 +287,8 @@ export function getResponse(id: string): ResponseEntry | null {
 
 export function getResponseStoreStats(): { count: number; oldestEntryAge?: number } {
   return getResponseStore().getStats();
+}
+
+export function getLatestResponseByProject(projectName: string): ResponseEntry | null {
+  return getResponseStore().getLatestByProject(projectName);
 }

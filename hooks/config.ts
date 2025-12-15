@@ -128,7 +128,7 @@ function loadEnvConfig(): NotificationConfig {
  *
  * For remote mode (AC-001, AC-007):
  *   - Read remoteUrl from ~/.claude-notify/config.json only
- *   - DO NOT read from per-project .agent/loom/notification-config.json
+ *   - DO NOT read from per-project .config/notification-config.json
  *   - DO NOT use ELEVENLABS_API_KEY, DISCORD_WEBHOOK_URL env vars (server handles these)
  *
  * For local mode:
@@ -166,7 +166,7 @@ export function loadConfig(): NotificationConfig {
       const fs = require('fs');
       const configPath = path.join(
         envConfig.projectDir,
-        '.agent/loom/notification-config.json'
+        '.config/notification-config.json'
       );
       if (fs.existsSync(configPath)) {
         const content = fs.readFileSync(configPath, 'utf-8');
@@ -219,7 +219,7 @@ export function loadConfig(): NotificationConfig {
     const fs = require('fs');
     const configPath = path.join(
       envConfig.projectDir,
-      '.agent/loom/notification-config.json'
+      '.config/notification-config.json'
     );
 
     if (fs.existsSync(configPath)) {

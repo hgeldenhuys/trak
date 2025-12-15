@@ -112,7 +112,7 @@ function formatDate(dateStr: string | null): string {
  */
 function maskKeyForDisplay(): string {
   // We only store hashes, so we show a placeholder format
-  return 'tk_test_********...';
+  return 'sk_live_********...';
 }
 
 /**

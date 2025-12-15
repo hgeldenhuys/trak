@@ -272,7 +272,7 @@ export interface EventPayload {
   sessionId: string;
   sessionName?: string;
   projectId: string;        // UUID from project-identity.json
-  projectName: string;      // Friendly name like "claude-loom"
+  projectName: string;      // Friendly name like "trak-project"
 
   // Context
   transcriptPath?: string;

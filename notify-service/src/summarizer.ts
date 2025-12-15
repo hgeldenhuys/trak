@@ -361,7 +361,7 @@ async function callAnthropicAPI(messages: AnthropicMessage[], systemPrompt: stri
 
     if (isOpenRouter) {
       headers['Authorization'] = `Bearer ${config.summarization.apiKey}`;
-      headers['HTTP-Referer'] = 'https://github.com/hgeldenhuys/claude-loom';
+      headers['HTTP-Referer'] = 'https://github.com/hgeldenhuys/trak-project';
       headers['X-Title'] = 'Claude Code Notifications';
     } else {
       headers['x-api-key'] = config.summarization.apiKey;

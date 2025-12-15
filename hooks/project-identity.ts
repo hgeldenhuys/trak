@@ -21,7 +21,7 @@ import { randomUUID } from 'crypto';
 
 export interface ProjectIdentity {
   projectId: string;      // UUID for unique identification
-  projectName: string;    // Friendly name (e.g., "claude-loom")
+  projectName: string;    // Friendly name (e.g., "my-project")
   createdAt: string;      // ISO timestamp when identity was created
   directory: string;      // Full path to project directory
 }

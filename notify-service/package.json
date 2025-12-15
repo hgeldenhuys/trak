@@ -1,12 +1,13 @@
 {
-  "name": "@claude-loom/notify-service",
+  "name": "@trak/notify-service",
   "version": "1.0.0",
   "description": "Centralized notification service for Claude Code with multi-repo audio queuing",
   "type": "module",
   "main": "src/server.ts",
   "bin": {
     "claude-notify": "src/cli.ts",
-    "notify-admin": "src/admin-cli.ts"
+    "notify-admin": "src/admin-cli.ts",
+    "discord-bot": "src/discord-bot/cli.ts"
   },
   "scripts": {
     "start": "bun run src/server.ts",
@@ -24,7 +25,7 @@
     "text-to-speech",
     "discord",
     "audio",
-    "loom"
+    "notifications"
   ],
   "author": "",
   "license": "MIT",
@@ -37,7 +38,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/claude-loom.git",
+    "url": "https://github.com/your-org/trak.git",
     "directory": "notify-service"
   },
   "files": [
@@ -49,6 +50,9 @@
   },
   "dependencies": {
     "@ngrok/ngrok": "^1.6.0",
+    "claude-hooks-sdk": "^0.8.6",
+    "commander": "^14.0.2",
+    "discord.js": "^14.25.1",
     "marked": "^17.0.1"
   }
 }

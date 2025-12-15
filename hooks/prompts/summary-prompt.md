@@ -58,7 +58,7 @@ Output:
 ```json
 {
   "taskCompleted": "I found and fixed the duplicate notification bug by adding transaction deduplication.",
-  "projectName": "Claude Loom",
+  "projectName": "My Project",
   "contextUsagePercent": 0,
   "keyOutcomes": ["Identified duplicate event processing", "Added deduplication logic"]
 }

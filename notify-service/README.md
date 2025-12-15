@@ -227,7 +227,7 @@ Response:
 }
 ```
 
-## Integrating with Claude Loom Hooks
+## Integrating with Notification Hooks
 
 The centralized service is the **default mode**. Projects automatically use the thin client when `~/.claude-notify/config.json` exists.
 
@@ -277,7 +277,7 @@ After making changes to the service, run the smoke tests to validate all critica
 bun notify-service/src/smoke-test.ts
 
 # Or specify target and key explicitly
-bun notify-service/src/smoke-test.ts --url https://notify.example.com --key tk_test_xxx
+bun notify-service/src/smoke-test.ts --url https://notify.example.com --key sk_live_xxx
 ```
 
 The smoke test validates:

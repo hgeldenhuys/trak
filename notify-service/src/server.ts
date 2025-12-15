@@ -16,7 +16,7 @@ import { initConfig, getConfig, getConfigSummary, validateConfig } from './confi
 import { handleNotify } from './routes/notify';
 import { handleHealth } from './routes/health';
 import { handleQueueStatus } from './routes/queue';
-import { handleResponse } from './routes/response';
+import { handleResponse, handleProjectLatestResponse } from './routes/response';
 import { handleAudio } from './routes/audio';
 import { handleEvents } from './routes/events';
 import { handleDebugSSE, handleDebugList } from './routes/debug';
@@ -66,6 +66,12 @@ async function handleRequest(request: Request): Promise<Response> {
     if (responseId) {
       return handleAudio(responseId);
     }
+  }
+
+  // Project latest response - /project/:projectId/latest-response
+  if (method === 'GET' && path.match(/^\/project\/[^/]+\/latest-response$/)) {
+    const projectId = decodeURIComponent(path.split('/')[2]);
+    return handleProjectLatestResponse(projectId);
   }
 
   // ========================================
@@ -163,14 +169,15 @@ export async function startServer(): Promise<{ port: number; ngrokUrl: string | 
   }
 
   console.log('Endpoints:');
-  console.log('  POST /notify              - Send notification');
-  console.log('  POST /events              - Receive hook events (NOTIFY-012)');
-  console.log('  GET  /debug               - List available projects');
-  console.log('  GET  /debug/:projectId    - SSE event stream');
-  console.log('  GET  /debug/:projectId/ui - Debug dashboard');
-  console.log('  GET  /health              - Service health');
-  console.log('  GET  /queue               - Audio queue status');
-  console.log('  GET  /response/:id        - View response page');
+  console.log('  POST /notify                            - Send notification');
+  console.log('  POST /events                            - Receive hook events (NOTIFY-012)');
+  console.log('  GET  /debug                             - List available projects');
+  console.log('  GET  /debug/:projectId                  - SSE event stream');
+  console.log('  GET  /debug/:projectId/ui               - Debug dashboard');
+  console.log('  GET  /health                            - Service health');
+  console.log('  GET  /queue                             - Audio queue status');
+  console.log('  GET  /response/:id                      - View response page');
+  console.log('  GET  /project/:projectId/latest-response - Latest response for project');
   console.log('');
   console.log('Press Ctrl+C to stop');
 

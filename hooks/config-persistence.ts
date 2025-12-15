@@ -3,7 +3,7 @@
  * Configuration Persistence Module
  *
  * Handles reading/writing notification-config.json for the TUI.
- * Persists configuration to .agent/loom/notification-config.json.
+ * Persists configuration to .config/notification-config.json.
  */
 
 import { readFile, writeFile, mkdir } from 'fs/promises';
@@ -45,7 +45,7 @@ export interface PersistedConfig {
  */
 export function getConfigPath(projectDir?: string): string {
   const baseDir = projectDir || process.env.CLAUDE_PROJECT_DIR || process.cwd();
-  return path.join(baseDir, '.agent/loom/notification-config.json');
+  return path.join(baseDir, '.config/notification-config.json');
 }
 
 /**
