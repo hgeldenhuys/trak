@@ -26,6 +26,8 @@ import { createHistoryCommand } from './commands/history';
 import { createDataCommand } from './commands/data';
 import { createInitCommand } from './commands/init';
 import { createSpecCommand } from './commands/spec';
+import { createPrdCommand } from './commands/prd';
+import { createArdCommand } from './commands/ard';
 
 /**
  * Get the default database path
@@ -143,6 +145,12 @@ function createProgram(): Command {
 
   // Spec command with show, set, clear subcommands
   program.addCommand(createSpecCommand());
+
+  // PRD command with show, set, clear subcommands
+  program.addCommand(createPrdCommand());
+
+  // ARD command with show, set, clear subcommands
+  program.addCommand(createArdCommand());
 
   return program;
 }

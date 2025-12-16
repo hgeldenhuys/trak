@@ -139,13 +139,28 @@ export function StoryDetailView({
 
   // Spec visibility toggle (keyboard shortcut 's')
   const [showSpec, setShowSpec] = useState(false);
+  // PRD visibility toggle (keyboard shortcut 'p')
+  const [showPrd, setShowPrd] = useState(false);
+  // ARD visibility toggle (keyboard shortcut 'a')
+  const [showArd, setShowArd] = useState(false);
 
   // Fetch spec note for this story
   const [specNote, setSpecNote] = useState<Note | null>(null);
+  // Fetch PRD note for this story
+  const [prdNote, setPrdNote] = useState<Note | null>(null);
+  // Fetch ARD note for this story
+  const [ardNote, setArdNote] = useState<Note | null>(null);
+
   useEffect(() => {
     if (storyId) {
       const specNotes = noteRepository.findByEntityAndType(EntityType.STORY, storyId, 'spec');
       setSpecNote(specNotes.length > 0 ? specNotes[0] : null);
+
+      const prdNotes = noteRepository.findByEntityAndType(EntityType.STORY, storyId, 'prd');
+      setPrdNote(prdNotes.length > 0 ? prdNotes[0] : null);
+
+      const ardNotes = noteRepository.findByEntityAndType(EntityType.STORY, storyId, 'ard');
+      setArdNote(ardNotes.length > 0 ? ardNotes[0] : null);
     }
   }, [storyId]);
 
@@ -210,6 +225,12 @@ export function StoryDetailView({
   const handleViewModeKey = useCallback((event: KeyEvent) => {
     if (event.name === 's') {
       setShowSpec((prev) => !prev);
+    }
+    if (event.name === 'p') {
+      setShowPrd((prev) => !prev);
+    }
+    if (event.name === 'a') {
+      setShowArd((prev) => !prev);
     }
   }, []);
 
@@ -409,7 +430,7 @@ export function StoryDetailView({
     ? activeTextFieldIndex !== null
       ? 'Enter: confirm  ESC: cancel edit'
       : 'j/k: navigate  Enter: edit field  ESC: save & exit'
-    : 'e: edit  s: spec  ESC: back  Enter: select task  j/k: scroll';
+    : 'e: edit  s: spec  p: prd  a: ard  ESC: back  Enter: select task  j/k: scroll';
 
   return (
     <box flexDirection="column" width="100%" height="100%">
@@ -500,6 +521,58 @@ export function StoryDetailView({
                   ))
                 ) : (
                   <text fg="gray">No specification available</text>
+                )}
+              </box>
+            )}
+          </box>
+
+          {/* PRD section (collapsible with 'p' key) */}
+          <box marginTop={1} flexDirection="column">
+            <text fg="magenta" attributes={TextAttributes.BOLD}>
+              {showPrd ? 'PRD [-]' : `PRD [+] (press 'p' to ${prdNote ? 'expand' : 'toggle'})`}
+            </text>
+            {showPrd && (
+              <box
+                flexDirection="column"
+                border={true}
+                borderStyle="single"
+                padding={1}
+                marginTop={1}
+              >
+                {prdNote ? (
+                  prdNote.content.split('\n').map((line, index) => (
+                    <text key={index} fg="white">
+                      {line || ' '}
+                    </text>
+                  ))
+                ) : (
+                  <text fg="gray">No PRD available</text>
+                )}
+              </box>
+            )}
+          </box>
+
+          {/* ARD section (collapsible with 'a' key) */}
+          <box marginTop={1} flexDirection="column">
+            <text fg="magenta" attributes={TextAttributes.BOLD}>
+              {showArd ? 'ARD [-]' : `ARD [+] (press 'a' to ${ardNote ? 'expand' : 'toggle'})`}
+            </text>
+            {showArd && (
+              <box
+                flexDirection="column"
+                border={true}
+                borderStyle="single"
+                padding={1}
+                marginTop={1}
+              >
+                {ardNote ? (
+                  ardNote.content.split('\n').map((line, index) => (
+                    <text key={index} fg="white">
+                      {line || ' '}
+                    </text>
+                  ))
+                ) : (
+                  <text fg="gray">No ARD available</text>
                 )}
               </box>
             )}
