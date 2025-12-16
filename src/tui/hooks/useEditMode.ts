@@ -51,6 +51,8 @@ export interface UseEditModeOptions {
   onExitEdit?: () => void;
   /** Callback when confirm key (return) is pressed on a field */
   onConfirm?: (fieldIndex: number) => void;
+  /** Callback for unhandled keys in view mode (enables custom shortcuts) */
+  onViewModeKey?: (event: KeyEvent) => void;
   /** Whether to enable keyboard handling (default: true) */
   enabled?: boolean;
 }
@@ -99,6 +101,7 @@ export function useEditMode(options: UseEditModeOptions): UseEditModeResult {
     onEnterEdit,
     onExitEdit,
     onConfirm,
+    onViewModeKey,
     enabled = true,
   } = options;
 
@@ -158,8 +161,11 @@ export function useEditMode(options: UseEditModeOptions): UseEditModeResult {
         enterEditMode();
         return;
       }
-      // Other keys in view mode pass through to other handlers
-      // (don't return early - let other useKeyboard hooks process)
+      // Delegate unhandled keys to parent via callback
+      if (onViewModeKey) {
+        onViewModeKey(event);
+      }
+      return;
     }
 
     // In edit mode: handle navigation and exit

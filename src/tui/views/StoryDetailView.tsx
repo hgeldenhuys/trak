@@ -24,7 +24,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { TextAttributes } from '@opentui/core';
-import { useKeyboard } from '@opentui/react';
 import type { KeyEvent } from '@opentui/core';
 import { useStory, useTasksByStory, useEditMode } from '../hooks';
 import { InlineTextInput, StatusSelector, PrioritySelector } from '../components';
@@ -207,21 +206,21 @@ export function StoryDetailView({
     // For cycle selectors, they handle their own cycling on Enter
   }, [activeTextFieldIndex]);
 
+  // Handle view mode keyboard shortcuts
+  const handleViewModeKey = useCallback((event: KeyEvent) => {
+    if (event.name === 's') {
+      setShowSpec((prev) => !prev);
+    }
+  }, []);
+
   // Use edit mode hook
   const [editState, editActions] = useEditMode({
     totalFields: EDITABLE_FIELDS.length,
     onEnterEdit: handleEnterEdit,
     onExitEdit: handleExitEdit,
     onConfirm: handleFieldConfirm,
+    onViewModeKey: handleViewModeKey,
     enabled: !!story,
-  });
-
-  // Keyboard handler for spec toggle ('s' key)
-  useKeyboard((event: KeyEvent) => {
-    // Only handle 's' in view mode (not editing)
-    if (!editState.isEditing && event.name === 's') {
-      setShowSpec((prev) => !prev);
-    }
   });
 
   // Handle canceling text input
