@@ -37,14 +37,22 @@ function resetTerminal(): void {
 
   // Use ANSI escape sequences to restore terminal state
   // without clearing the screen (preserves error messages)
+  // These cover all modes OpenTUI enables
   const escapes = [
     '\x1b[?1000l', // Disable mouse click tracking
     '\x1b[?1002l', // Disable mouse button tracking
     '\x1b[?1003l', // Disable mouse any-event tracking
     '\x1b[?1006l', // Disable SGR mouse mode
+    '\x1b[?1004l', // Disable focus tracking
+    '\x1b[?2004l', // Disable bracketed paste mode
+    '\x1b[?2026l', // Disable synchronized output
+    '\x1b[?2027l', // Disable grapheme cluster mode
     '\x1b[?1049l', // Exit alternate screen buffer
     '\x1b[?25h',   // Show cursor
     '\x1b[0m',     // Reset text attributes
+    '\x1b[r',      // Reset scroll region
+    '\x1b[H',      // Move cursor to home position
+    '\x1bc',       // Full terminal reset (RIS)
   ].join('');
 
   process.stdout.write(escapes);
