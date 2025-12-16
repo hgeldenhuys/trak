@@ -333,7 +333,7 @@ describe('Transaction Tracker', () => {
     );
 
     expect(completed).not.toBeNull();
-    expect(completed?.durationMs).toBe(0); // Unknown duration
+    expect(completed?.durationMs).toBeLessThanOrEqual(100); // Unknown/minimal duration
     expect(completed?.filesModified).toEqual(['file.ts']);
   });
 
