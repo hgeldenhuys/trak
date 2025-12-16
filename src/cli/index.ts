@@ -25,6 +25,7 @@ import { createSessionCommand } from './commands/session';
 import { createHistoryCommand } from './commands/history';
 import { createDataCommand } from './commands/data';
 import { createInitCommand } from './commands/init';
+import { createSpecCommand } from './commands/spec';
 
 /**
  * Get the default database path
@@ -139,6 +140,9 @@ function createProgram(): Command {
 
   // Init command to create project-local database
   program.addCommand(createInitCommand());
+
+  // Spec command with show, set, clear subcommands
+  program.addCommand(createSpecCommand());
 
   return program;
 }

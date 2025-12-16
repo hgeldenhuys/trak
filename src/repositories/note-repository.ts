@@ -148,6 +148,30 @@ export class NoteRepository {
   }
 
   /**
+   * Find notes for an entity filtered by extension type
+   *
+   * @param entityType - Type of entity (story, task, etc.)
+   * @param entityId - ID of the entity
+   * @param type - The type value in extensions.type to filter by (e.g., 'spec')
+   * @returns Notes matching entity and type filter
+   */
+  findByEntityAndType(entityType: EntityType, entityId: string, type: string): Note[] {
+    const rows = this.db.query(`
+      SELECT * FROM ${this.tableName}
+      WHERE entity_type = $entityType
+        AND entity_id = $entityId
+        AND json_extract(extensions, '$.type') = $type
+      ORDER BY created_at DESC
+    `).all({ $entityType: entityType, $entityId: entityId, $type: type }) as NoteRow[];
+
+    const result: Note[] = [];
+    for (const row of rows) {
+      result.push(toNote(row));
+    }
+    return result;
+  }
+
+  /**
    * Find all pinned notes
    */
   findPinned(): Note[] {

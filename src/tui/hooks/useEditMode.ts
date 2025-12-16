@@ -158,8 +158,8 @@ export function useEditMode(options: UseEditModeOptions): UseEditModeResult {
         enterEditMode();
         return;
       }
-      // Other keys in view mode are ignored by this hook
-      return;
+      // Other keys in view mode pass through to other handlers
+      // (don't return early - let other useKeyboard hooks process)
     }
 
     // In edit mode: handle navigation and exit

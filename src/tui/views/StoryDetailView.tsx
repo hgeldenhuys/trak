@@ -22,13 +22,15 @@
  * - Use `attributes={TextAttributes.BOLD}` for bold, not `bold`
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { TextAttributes } from '@opentui/core';
+import { useKeyboard } from '@opentui/react';
+import type { KeyEvent } from '@opentui/core';
 import { useStory, useTasksByStory, useEditMode } from '../hooks';
 import { InlineTextInput, StatusSelector, PrioritySelector } from '../components';
-import { acceptanceCriteriaRepository, storyRepository } from '../../repositories';
-import type { AcceptanceCriteria, Story, UpdateStoryInput } from '../../types';
-import { StoryStatus, Priority } from '../../types';
+import { acceptanceCriteriaRepository, storyRepository, noteRepository } from '../../repositories';
+import type { AcceptanceCriteria, Story, UpdateStoryInput, Note } from '../../types';
+import { StoryStatus, Priority, EntityType } from '../../types';
 
 /**
  * Props for StoryDetailView component
@@ -136,6 +138,18 @@ export function StoryDetailView({
   // Track which text field is actively being edited (has focus for typing)
   const [activeTextFieldIndex, setActiveTextFieldIndex] = useState<number | null>(null);
 
+  // Spec visibility toggle (keyboard shortcut 's')
+  const [showSpec, setShowSpec] = useState(false);
+
+  // Fetch spec note for this story
+  const [specNote, setSpecNote] = useState<Note | null>(null);
+  useEffect(() => {
+    if (storyId) {
+      const specNotes = noteRepository.findByEntityAndType(EntityType.STORY, storyId, 'spec');
+      setSpecNote(specNotes.length > 0 ? specNotes[0] : null);
+    }
+  }, [storyId]);
+
   // Initialize draft when entering edit mode
   const handleEnterEdit = useCallback(() => {
     if (!story) return;
@@ -200,6 +214,14 @@ export function StoryDetailView({
     onExitEdit: handleExitEdit,
     onConfirm: handleFieldConfirm,
     enabled: !!story,
+  });
+
+  // Keyboard handler for spec toggle ('s' key)
+  useKeyboard((event: KeyEvent) => {
+    // Only handle 's' in view mode (not editing)
+    if (!editState.isEditing && event.name === 's') {
+      setShowSpec((prev) => !prev);
+    }
   });
 
   // Handle canceling text input
@@ -388,7 +410,7 @@ export function StoryDetailView({
     ? activeTextFieldIndex !== null
       ? 'Enter: confirm  ESC: cancel edit'
       : 'j/k: navigate  Enter: edit field  ESC: save & exit'
-    : 'e: edit  ESC: back  Enter: select task  j/k: scroll';
+    : 'e: edit  s: spec  ESC: back  Enter: select task  j/k: scroll';
 
   return (
     <box flexDirection="column" width="100%" height="100%">
@@ -456,6 +478,32 @@ export function StoryDetailView({
               </box>
               <text fg="gray">{new Date(story.updatedAt).toLocaleDateString()}</text>
             </box>
+          </box>
+
+          {/* Specification section (collapsible with 's' key) */}
+          <box marginTop={1} flexDirection="column">
+            <text fg="magenta" attributes={TextAttributes.BOLD}>
+              {showSpec ? 'Specification [-]' : `Specification [+] (press 's' to ${specNote ? 'expand' : 'toggle'})`}
+            </text>
+            {showSpec && (
+              <box
+                flexDirection="column"
+                border={true}
+                borderStyle="single"
+                padding={1}
+                marginTop={1}
+              >
+                {specNote ? (
+                  specNote.content.split('\n').map((line, index) => (
+                    <text key={index} fg="white">
+                      {line || ' '}
+                    </text>
+                  ))
+                ) : (
+                  <text fg="gray">No specification available</text>
+                )}
+              </box>
+            )}
           </box>
 
           {/* Acceptance Criteria section (non-editable) */}
