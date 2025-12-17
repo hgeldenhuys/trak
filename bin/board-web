@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Wrapper script for board-web server
+# Executes the binary downloaded by postinstall
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BINARY="$SCRIPT_DIR/.board-web-binary"
+
+if [ ! -f "$BINARY" ]; then
+    echo "Error: board-web binary not found at $BINARY"
+    echo ""
+    echo "The postinstall script may not have run correctly."
+    echo "Try reinstalling:"
+    echo "  npm install -g trak-board"
+    echo ""
+    echo "Or install manually:"
+    echo "  curl -fsSL https://raw.githubusercontent.com/hgeldenhuys/trak/main/install-binary.sh | bash"
+    exit 1
+fi
+
+exec "$BINARY" "$@"
