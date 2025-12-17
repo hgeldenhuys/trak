@@ -503,6 +503,7 @@ describe('Views Rendering (Direct)', () => {
         platform: process.platform,
         arch: process.arch,
         cwd: process.cwd(),
+        adapters: [],
       });
 
       expect(html).toContain('<!DOCTYPE html>');

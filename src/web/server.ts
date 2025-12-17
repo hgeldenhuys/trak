@@ -37,6 +37,7 @@ import {
 } from '../repositories';
 import { getEventBus } from '../events/event-bus';
 import { initDb, getDbPath, isDbInitialized, getSchemaVersion, getDb, resolveDbPath } from '../db';
+import { discoverAdapters } from '../adapters';
 import type { BoardEventName } from '../events/types';
 
 /**
@@ -178,7 +179,7 @@ function handleRetros(): Response {
   });
 }
 
-function handleSystemInfo(): Response {
+async function handleSystemInfo(): Promise<Response> {
   ensureDbInitialized();
 
   let schemaVersion = 0;
@@ -193,6 +194,9 @@ function handleSystemInfo(): Response {
     }
   }
 
+  // Discover adapters (runs in parallel with short timeout)
+  const adapters = await discoverAdapters();
+
   const html = renderSystemInfo({
     dbPath: getDbPath(),
     dbInitialized,
@@ -203,6 +207,7 @@ function handleSystemInfo(): Response {
     platform: process.platform,
     arch: process.arch,
     cwd: process.cwd(),
+    adapters,
   });
 
   return new Response(html, {
@@ -355,7 +360,7 @@ function handleNotFound(): Response {
 /**
  * Main router
  */
-function handleRequest(req: Request): Response {
+async function handleRequest(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const path = url.pathname;
 
@@ -388,7 +393,7 @@ function handleRequest(req: Request): Response {
   }
 
   if (path === '/system') {
-    return handleSystemInfo();
+    return await handleSystemInfo();
   }
 
   if (path === '/agents') {
