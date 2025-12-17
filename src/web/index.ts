@@ -5,7 +5,7 @@
  *   bun run src/web/index.ts
  *
  * Configuration:
- *   WEB_PORT - Server port (default: 3000)
+ *   WEB_PORT - Server port (default: 3345)
  *   BOARD_DB_PATH - Database path (default: .board.db in cwd)
  */
 

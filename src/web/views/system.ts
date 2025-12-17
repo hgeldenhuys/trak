@@ -68,7 +68,7 @@ export function renderSystemInfo(data: SystemInfoData): string {
       <div class="system-info-grid">
         <div class="system-info-row">
           <span class="label">WEB_PORT</span>
-          <span class="value">${escapeHtml(process.env.WEB_PORT || '3000 (default)')}</span>
+          <span class="value">${escapeHtml(process.env.WEB_PORT || '3345 (default)')}</span>
         </div>
         <div class="system-info-row">
           <span class="label">BOARD_DB_PATH</span>
