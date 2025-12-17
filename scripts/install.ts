@@ -107,6 +107,14 @@ async function installLocal(): Promise<boolean> {
     return false;
   }
   chmodSync(cliDest, 0o755);
+
+  // Sign CLI binary (fixes macOS exit code 137 issue)
+  if (process.platform === 'darwin') {
+    const signResult = await $`codesign --force --sign - ${cliDest}`.quiet();
+    if (signResult.exitCode !== 0) {
+      console.warn(`  ⚠ Failed to sign CLI binary - may cause exit code 137`);
+    }
+  }
   console.log(`  ✓ CLI binary: ${cliDest}`);
 
   // Copy TUI binary
@@ -117,6 +125,14 @@ async function installLocal(): Promise<boolean> {
     return false;
   }
   chmodSync(tuiDest, 0o755);
+
+  // Sign TUI binary (fixes macOS exit code 137 issue)
+  if (process.platform === 'darwin') {
+    const signResult = await $`codesign --force --sign - ${tuiDest}`.quiet();
+    if (signResult.exitCode !== 0) {
+      console.warn(`  ⚠ Failed to sign TUI binary - may cause exit code 137`);
+    }
+  }
   console.log(`  ✓ TUI binary: ${tuiDest}`);
 
   return true;
