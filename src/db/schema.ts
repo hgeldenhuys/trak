@@ -8,8 +8,9 @@
 
 /**
  * Current schema version for migration tracking
+ * Must match the highest migration number (e.g., 008_weave.ts = 8)
  */
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 8;
 
 /**
  * Table names as constants
