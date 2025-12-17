@@ -11,16 +11,19 @@ case "$(uname -s)" in
         ;;
 esac
 
-# Find the trak project directory
+# Find the trak-board package directory
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TRAK_DIR=""
 
-# Check common locations
-if [ -f "$HOME/WebstormProjects/trak/package.json" ]; then
-    TRAK_DIR="$HOME/WebstormProjects/trak"
-elif [ -f "$SCRIPT_DIR/../package.json" ]; then
+# Check locations in order of preference:
+# 1. npm global install (script is in node_modules/trak-board/bin/)
+if [ -f "$SCRIPT_DIR/../src/tui/index.tsx" ]; then
     TRAK_DIR="$SCRIPT_DIR/.."
-elif [ -f "./package.json" ] && grep -q '"name": "trak-board"' ./package.json 2>/dev/null; then
+# 2. Local development directory
+elif [ -f "$HOME/WebstormProjects/trak/src/tui/index.tsx" ]; then
+    TRAK_DIR="$HOME/WebstormProjects/trak"
+# 3. Current directory is trak project
+elif [ -f "./src/tui/index.tsx" ] && grep -q '"name": "trak-board"' ./package.json 2>/dev/null; then
     TRAK_DIR="."
 fi
 
