@@ -451,3 +451,85 @@ export type CreateDecisionInput = Pick<Decision, 'entityType' | 'entityId' | 'qu
  * Type for updating a Decision
  */
 export type UpdateDecisionInput = Partial<Pick<Decision, 'choice' | 'alternatives' | 'rationale' | 'status' | 'supersededBy' | 'extensions'>>;
+
+/**
+ * AgentDefinition entity - versioned agent definitions with learnings
+ *
+ * Agent definitions store the configuration for specialized agents
+ * that can be evolved over time through versioning.
+ */
+export interface AgentDefinition {
+  /** UUID for unique identification */
+  id: string;
+  /** Agent name (e.g., 'backend-dev-typescript-sse') */
+  name: string;
+  /** Version number (simple integer: 1, 2, 3...) */
+  version: number;
+  /** Base role (e.g., 'backend-dev', 'frontend-dev') */
+  role: string;
+  /** Optional specialization within the role */
+  specialization: string | null;
+  /** Agent persona description */
+  persona: string;
+  /** Agent objective/goal */
+  objective: string;
+  /** Priming context as JSON object */
+  priming: Record<string, unknown>;
+  /** Constraints as JSON object */
+  constraints: Record<string, unknown>;
+  /** Reference to parent definition this was derived from */
+  derivedFrom: string | null;
+  /** Count of successful runs */
+  successCount: number;
+  /** Count of failed runs */
+  failureCount: number;
+  /** Story this agent was created for */
+  createdForStory: string | null;
+  /** ISO timestamp of creation */
+  createdAt: string;
+}
+
+/**
+ * AgentLearning entity - accumulated learnings for agent roles
+ *
+ * Learnings can be general (no specialization) or specific to a
+ * specialization. The inheritance system allows specialized agents
+ * to benefit from learnings of their base roles.
+ */
+export interface AgentLearning {
+  /** UUID for unique identification */
+  id: string;
+  /** Role this learning applies to */
+  role: string;
+  /** Optional specialization (null = applies to all variants of the role) */
+  specialization: string | null;
+  /** Story this learning came from */
+  storyId: string | null;
+  /** Task this learning came from */
+  taskId: string | null;
+  /** The learning content */
+  learning: string;
+  /** Category of learning */
+  category: 'pattern' | 'pitfall' | 'technique';
+  /** Confidence level 0-1 */
+  confidence: number;
+  /** ISO timestamp of creation */
+  createdAt: string;
+}
+
+/**
+ * Type for creating a new AgentDefinition
+ */
+export type CreateAgentDefinitionInput = Pick<AgentDefinition, 'name' | 'role'> &
+  Partial<Pick<AgentDefinition, 'version' | 'specialization' | 'persona' | 'objective' | 'priming' | 'constraints' | 'derivedFrom' | 'createdForStory'>>;
+
+/**
+ * Type for updating an AgentDefinition
+ */
+export type UpdateAgentDefinitionInput = Partial<Pick<AgentDefinition, 'persona' | 'objective' | 'priming' | 'constraints' | 'successCount' | 'failureCount'>>;
+
+/**
+ * Type for creating a new AgentLearning
+ */
+export type CreateAgentLearningInput = Pick<AgentLearning, 'role' | 'learning'> &
+  Partial<Pick<AgentLearning, 'specialization' | 'storyId' | 'taskId' | 'category' | 'confidence'>>;

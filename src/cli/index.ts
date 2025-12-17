@@ -28,6 +28,8 @@ import { createInitCommand } from './commands/init';
 import { createSpecCommand } from './commands/spec';
 import { createPrdCommand } from './commands/prd';
 import { createArdCommand } from './commands/ard';
+import { createAgentCommand } from './commands/agent';
+import { createLearningCommand } from './commands/learning';
 
 /**
  * Get the default database path
@@ -151,6 +153,12 @@ function createProgram(): Command {
 
   // ARD command with show, set, clear subcommands
   program.addCommand(createArdCommand());
+
+  // Agent command with list, show, create, delete, success, failure subcommands
+  program.addCommand(createAgentCommand());
+
+  // Learning command with add, list, show, delete, search subcommands
+  program.addCommand(createLearningCommand());
 
   return program;
 }

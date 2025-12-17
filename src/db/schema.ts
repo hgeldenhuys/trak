@@ -29,6 +29,8 @@ export const TABLES = {
   RELATIONS: 'relations',
   QEOM_METADATA: 'qeom_metadata',
   DECISIONS: 'decisions',
+  AGENT_DEFINITIONS: 'agent_definitions',
+  AGENT_LEARNINGS: 'agent_learnings',
 } as const;
 
 /**
@@ -411,6 +413,65 @@ export const CREATE_DECISIONS_INDEXES = `
 `;
 
 /**
+ * SQL for creating the agent_definitions table
+ */
+export const CREATE_AGENT_DEFINITIONS_TABLE = `
+  CREATE TABLE IF NOT EXISTS ${TABLES.AGENT_DEFINITIONS} (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1,
+    role TEXT NOT NULL,
+    specialization TEXT,
+    persona TEXT NOT NULL DEFAULT '',
+    objective TEXT NOT NULL DEFAULT '',
+    priming TEXT NOT NULL DEFAULT '{}',
+    constraints TEXT NOT NULL DEFAULT '{}',
+    derived_from TEXT,
+    success_count INTEGER NOT NULL DEFAULT 0,
+    failure_count INTEGER NOT NULL DEFAULT 0,
+    created_for_story TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (name, version)
+  );
+`;
+
+/**
+ * SQL for creating indexes on agent_definitions table
+ */
+export const CREATE_AGENT_DEFINITIONS_INDEXES = `
+  CREATE INDEX IF NOT EXISTS idx_agent_definitions_name ON ${TABLES.AGENT_DEFINITIONS}(name);
+  CREATE INDEX IF NOT EXISTS idx_agent_definitions_role ON ${TABLES.AGENT_DEFINITIONS}(role);
+  CREATE INDEX IF NOT EXISTS idx_agent_definitions_version ON ${TABLES.AGENT_DEFINITIONS}(name, version);
+`;
+
+/**
+ * SQL for creating the agent_learnings table
+ */
+export const CREATE_AGENT_LEARNINGS_TABLE = `
+  CREATE TABLE IF NOT EXISTS ${TABLES.AGENT_LEARNINGS} (
+    id TEXT PRIMARY KEY,
+    role TEXT NOT NULL,
+    specialization TEXT,
+    story_id TEXT,
+    task_id TEXT,
+    learning TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'pattern',
+    confidence REAL NOT NULL DEFAULT 0.5,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+`;
+
+/**
+ * SQL for creating indexes on agent_learnings table
+ */
+export const CREATE_AGENT_LEARNINGS_INDEXES = `
+  CREATE INDEX IF NOT EXISTS idx_agent_learnings_role ON ${TABLES.AGENT_LEARNINGS}(role);
+  CREATE INDEX IF NOT EXISTS idx_agent_learnings_role_spec ON ${TABLES.AGENT_LEARNINGS}(role, specialization);
+  CREATE INDEX IF NOT EXISTS idx_agent_learnings_category ON ${TABLES.AGENT_LEARNINGS}(category);
+  CREATE INDEX IF NOT EXISTS idx_agent_learnings_story_id ON ${TABLES.AGENT_LEARNINGS}(story_id);
+`;
+
+/**
  * All table creation SQL statements in order
  */
 export const ALL_TABLE_CREATES = [
@@ -428,6 +489,8 @@ export const ALL_TABLE_CREATES = [
   CREATE_RELATIONS_TABLE,
   CREATE_QEOM_METADATA_TABLE,
   CREATE_DECISIONS_TABLE,
+  CREATE_AGENT_DEFINITIONS_TABLE,
+  CREATE_AGENT_LEARNINGS_TABLE,
 ];
 
 /**
@@ -447,6 +510,8 @@ export const ALL_INDEX_CREATES = [
   CREATE_RELATIONS_INDEXES,
   CREATE_QEOM_METADATA_INDEXES,
   CREATE_DECISIONS_INDEXES,
+  CREATE_AGENT_DEFINITIONS_INDEXES,
+  CREATE_AGENT_LEARNINGS_INDEXES,
 ];
 
 /**
@@ -622,5 +687,32 @@ export const COLUMN_MAPPINGS = {
     extensions: 'extensions',
     createdAt: 'created_at',
     updatedAt: 'updated_at',
+  },
+  agentDefinitions: {
+    id: 'id',
+    name: 'name',
+    version: 'version',
+    role: 'role',
+    specialization: 'specialization',
+    persona: 'persona',
+    objective: 'objective',
+    priming: 'priming',
+    constraints: 'constraints',
+    derivedFrom: 'derived_from',
+    successCount: 'success_count',
+    failureCount: 'failure_count',
+    createdForStory: 'created_for_story',
+    createdAt: 'created_at',
+  },
+  agentLearnings: {
+    id: 'id',
+    role: 'role',
+    specialization: 'specialization',
+    storyId: 'story_id',
+    taskId: 'task_id',
+    learning: 'learning',
+    category: 'category',
+    confidence: 'confidence',
+    createdAt: 'created_at',
   },
 } as const;

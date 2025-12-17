@@ -108,6 +108,18 @@ export { QEOMRepository, qeomRepository } from './qeom-repository';
 export { DecisionRepository, decisionRepository } from './decision-repository';
 
 // =============================================================================
+// Agent Definition Repository
+// =============================================================================
+
+export { AgentDefinitionRepository, agentDefinitionRepository } from './agent-definition-repository';
+
+// =============================================================================
+// Agent Learning Repository
+// =============================================================================
+
+export { AgentLearningRepository, agentLearningRepository } from './agent-learning-repository';
+
+// =============================================================================
 // Unified Repositories Object
 // =============================================================================
 
@@ -123,6 +135,8 @@ import { labelRepository } from './label-repository';
 import { relationRepository } from './relation-repository';
 import { qeomRepository } from './qeom-repository';
 import { decisionRepository } from './decision-repository';
+import { agentDefinitionRepository } from './agent-definition-repository';
+import { agentLearningRepository } from './agent-learning-repository';
 
 /**
  * Unified repositories object containing all singleton instances
@@ -167,6 +181,10 @@ export const repositories = {
   qeom: qeomRepository,
   /** Decision repository instance */
   decisions: decisionRepository,
+  /** Agent definition repository instance */
+  agentDefinitions: agentDefinitionRepository,
+  /** Agent learning repository instance */
+  agentLearnings: agentLearningRepository,
 } as const;
 
 /**

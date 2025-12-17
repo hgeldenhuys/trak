@@ -35,6 +35,8 @@ export type {
   Relation,
   QEOMMetadata,
   Decision,
+  AgentDefinition,
+  AgentLearning,
 } from './entities';
 
 // Re-export all input types for create operations
@@ -51,6 +53,8 @@ export type {
   CreateRelationInput,
   CreateQEOMMetadataInput,
   CreateDecisionInput,
+  CreateAgentDefinitionInput,
+  CreateAgentLearningInput,
 } from './entities';
 
 // Re-export all input types for update operations
@@ -66,4 +70,5 @@ export type {
   UpdateRelationInput,
   UpdateQEOMMetadataInput,
   UpdateDecisionInput,
+  UpdateAgentDefinitionInput,
 } from './entities';
