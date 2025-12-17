@@ -37,6 +37,9 @@ export type {
   Decision,
   AgentDefinition,
   AgentLearning,
+  WeaveDimension,
+  WeaveEntry,
+  WeaveReference,
 } from './entities';
 
 // Re-export all input types for create operations
@@ -55,6 +58,8 @@ export type {
   CreateDecisionInput,
   CreateAgentDefinitionInput,
   CreateAgentLearningInput,
+  CreateWeaveEntryInput,
+  CreateWeaveReferenceInput,
 } from './entities';
 
 // Re-export all input types for update operations
@@ -71,4 +76,5 @@ export type {
   UpdateQEOMMetadataInput,
   UpdateDecisionInput,
   UpdateAgentDefinitionInput,
+  UpdateWeaveEntryInput,
 } from './entities';

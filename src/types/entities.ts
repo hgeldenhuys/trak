@@ -533,3 +533,84 @@ export type UpdateAgentDefinitionInput = Partial<Pick<AgentDefinition, 'persona'
  */
 export type CreateAgentLearningInput = Pick<AgentLearning, 'role' | 'learning'> &
   Partial<Pick<AgentLearning, 'specialization' | 'storyId' | 'taskId' | 'category' | 'confidence'>>;
+
+/**
+ * Weave dimension types - the 11 dimensions of knowledge
+ */
+export type WeaveDimension =
+  | 'Q'      // Qualia - experiences, pain points, solutions
+  | 'E'      // Epistemology - patterns, validations, concepts
+  | 'O'      // Ontology - entities, relations, constraints
+  | 'M'      // Mereology - components, compositions, parts
+  | 'C'      // Causation - causal chains, root causes, mechanisms
+  | 'A'      // Axiology - value judgments, tradeoffs, quality metrics
+  | 'T'      // Teleology - purposes, goals, intents
+  | 'H'      // History (Eta) - evolutions, timelines, legacy patterns
+  | 'Pi'     // Praxeology - wow patterns, delegation strategies, best practices
+  | 'Mu'     // Modality - alternatives, rejected options, possible futures
+  | 'Delta'; // Deontics - obligations, permissions, prohibitions
+
+/**
+ * WeaveEntry entity - a knowledge entry in the Weave framework
+ *
+ * Entries represent discrete pieces of knowledge across the 11 dimensions.
+ * Each entry has a confidence level and evidence to support it.
+ */
+export interface WeaveEntry {
+  /** UUID for unique identification */
+  id: string;
+  /** Dimension this entry belongs to (Q, E, O, M, C, A, T, H, Pi, Mu, Delta) */
+  dimension: WeaveDimension;
+  /** Type of entry within the dimension (e.g., pattern, painpoint, solution, entity) */
+  type: string;
+  /** Short title/concept for the entry */
+  concept: string;
+  /** Full description of the entry */
+  description: string;
+  /** Confidence level 0-1 */
+  confidence: number;
+  /** Evidence supporting this entry (JSON array of strings) */
+  evidence: string[];
+  /** Story ID where this was discovered */
+  discoveredIn: string | null;
+  /** Date string when discovered */
+  discoveredAt: string | null;
+  /** Dimension-specific metadata (JSON object) */
+  metadata: Record<string, unknown>;
+  /** ISO timestamp of creation */
+  createdAt: string;
+  /** ISO timestamp of last update */
+  updatedAt: string;
+}
+
+/**
+ * WeaveReference entity - cross-reference between weave entries
+ */
+export interface WeaveReference {
+  /** UUID for unique identification */
+  id: string;
+  /** ID of the source entry */
+  fromEntryId: string;
+  /** ID of the target entry */
+  toEntryId: string;
+  /** Type of relationship (relates_to, depends_on, contradicts, etc.) */
+  relationType: string;
+  /** ISO timestamp of creation */
+  createdAt: string;
+}
+
+/**
+ * Type for creating a new WeaveEntry
+ */
+export type CreateWeaveEntryInput = Pick<WeaveEntry, 'dimension' | 'type' | 'concept' | 'description'> &
+  Partial<Pick<WeaveEntry, 'confidence' | 'evidence' | 'discoveredIn' | 'discoveredAt' | 'metadata'>>;
+
+/**
+ * Type for updating a WeaveEntry
+ */
+export type UpdateWeaveEntryInput = Partial<Pick<WeaveEntry, 'concept' | 'description' | 'confidence' | 'evidence' | 'metadata'>>;
+
+/**
+ * Type for creating a new WeaveReference
+ */
+export type CreateWeaveReferenceInput = Pick<WeaveReference, 'fromEntryId' | 'toEntryId' | 'relationType'>;

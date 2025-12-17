@@ -120,6 +120,12 @@ export { AgentDefinitionRepository, agentDefinitionRepository } from './agent-de
 export { AgentLearningRepository, agentLearningRepository } from './agent-learning-repository';
 
 // =============================================================================
+// Weave Entry Repository
+// =============================================================================
+
+export { WeaveEntryRepository, weaveEntryRepository, VALID_DIMENSIONS } from './weave-entry-repository';
+
+// =============================================================================
 // Unified Repositories Object
 // =============================================================================
 
@@ -137,6 +143,7 @@ import { qeomRepository } from './qeom-repository';
 import { decisionRepository } from './decision-repository';
 import { agentDefinitionRepository } from './agent-definition-repository';
 import { agentLearningRepository } from './agent-learning-repository';
+import { weaveEntryRepository } from './weave-entry-repository';
 
 /**
  * Unified repositories object containing all singleton instances
@@ -185,6 +192,8 @@ export const repositories = {
   agentDefinitions: agentDefinitionRepository,
   /** Agent learning repository instance */
   agentLearnings: agentLearningRepository,
+  /** Weave entry repository instance */
+  weaveEntries: weaveEntryRepository,
 } as const;
 
 /**

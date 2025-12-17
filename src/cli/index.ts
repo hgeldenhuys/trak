@@ -30,6 +30,7 @@ import { createPrdCommand } from './commands/prd';
 import { createArdCommand } from './commands/ard';
 import { createAgentCommand } from './commands/agent';
 import { createLearningCommand } from './commands/learning';
+import { createWeaveCommand } from './commands/weave';
 
 /**
  * Get the default database path
@@ -159,6 +160,9 @@ function createProgram(): Command {
 
   // Learning command with add, list, show, delete, search subcommands
   program.addCommand(createLearningCommand());
+
+  // Weave command with add, list, show, search, delete, summary, ref subcommands
+  program.addCommand(createWeaveCommand());
 
   return program;
 }

@@ -31,6 +31,8 @@ export const TABLES = {
   DECISIONS: 'decisions',
   AGENT_DEFINITIONS: 'agent_definitions',
   AGENT_LEARNINGS: 'agent_learnings',
+  WEAVE_ENTRIES: 'weave_entries',
+  WEAVE_REFERENCES: 'weave_references',
 } as const;
 
 /**
@@ -472,6 +474,68 @@ export const CREATE_AGENT_LEARNINGS_INDEXES = `
 `;
 
 /**
+ * SQL for creating the weave_entries table
+ *
+ * Stores Weave knowledge framework entries across 11 dimensions:
+ * Q (Qualia), E (Epistemology), O (Ontology), M (Mereology),
+ * C (Causation), A (Axiology), T (Teleology), H (History),
+ * Pi (Praxeology), Mu (Modality), Delta (Deontics)
+ */
+export const CREATE_WEAVE_ENTRIES_TABLE = `
+  CREATE TABLE IF NOT EXISTS ${TABLES.WEAVE_ENTRIES} (
+    id TEXT PRIMARY KEY,
+    dimension TEXT NOT NULL,
+    type TEXT NOT NULL,
+    concept TEXT NOT NULL,
+    description TEXT NOT NULL,
+    confidence REAL NOT NULL DEFAULT 0.5,
+    evidence TEXT NOT NULL DEFAULT '[]',
+    discovered_in TEXT,
+    discovered_at TEXT,
+    metadata TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+`;
+
+/**
+ * SQL for creating indexes on weave_entries table
+ */
+export const CREATE_WEAVE_ENTRIES_INDEXES = `
+  CREATE INDEX IF NOT EXISTS idx_weave_entries_dimension ON ${TABLES.WEAVE_ENTRIES}(dimension);
+  CREATE INDEX IF NOT EXISTS idx_weave_entries_type ON ${TABLES.WEAVE_ENTRIES}(type);
+  CREATE INDEX IF NOT EXISTS idx_weave_entries_dimension_type ON ${TABLES.WEAVE_ENTRIES}(dimension, type);
+  CREATE INDEX IF NOT EXISTS idx_weave_entries_discovered_in ON ${TABLES.WEAVE_ENTRIES}(discovered_in);
+  CREATE INDEX IF NOT EXISTS idx_weave_entries_confidence ON ${TABLES.WEAVE_ENTRIES}(confidence);
+`;
+
+/**
+ * SQL for creating the weave_references table
+ *
+ * Stores cross-references between weave entries
+ */
+export const CREATE_WEAVE_REFERENCES_TABLE = `
+  CREATE TABLE IF NOT EXISTS ${TABLES.WEAVE_REFERENCES} (
+    id TEXT PRIMARY KEY,
+    from_entry_id TEXT NOT NULL,
+    to_entry_id TEXT NOT NULL,
+    relation_type TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (from_entry_id) REFERENCES ${TABLES.WEAVE_ENTRIES}(id) ON DELETE CASCADE,
+    FOREIGN KEY (to_entry_id) REFERENCES ${TABLES.WEAVE_ENTRIES}(id) ON DELETE CASCADE
+  );
+`;
+
+/**
+ * SQL for creating indexes on weave_references table
+ */
+export const CREATE_WEAVE_REFERENCES_INDEXES = `
+  CREATE INDEX IF NOT EXISTS idx_weave_references_from ON ${TABLES.WEAVE_REFERENCES}(from_entry_id);
+  CREATE INDEX IF NOT EXISTS idx_weave_references_to ON ${TABLES.WEAVE_REFERENCES}(to_entry_id);
+  CREATE INDEX IF NOT EXISTS idx_weave_references_type ON ${TABLES.WEAVE_REFERENCES}(relation_type);
+`;
+
+/**
  * All table creation SQL statements in order
  */
 export const ALL_TABLE_CREATES = [
@@ -491,6 +555,8 @@ export const ALL_TABLE_CREATES = [
   CREATE_DECISIONS_TABLE,
   CREATE_AGENT_DEFINITIONS_TABLE,
   CREATE_AGENT_LEARNINGS_TABLE,
+  CREATE_WEAVE_ENTRIES_TABLE,
+  CREATE_WEAVE_REFERENCES_TABLE,
 ];
 
 /**
@@ -512,6 +578,8 @@ export const ALL_INDEX_CREATES = [
   CREATE_DECISIONS_INDEXES,
   CREATE_AGENT_DEFINITIONS_INDEXES,
   CREATE_AGENT_LEARNINGS_INDEXES,
+  CREATE_WEAVE_ENTRIES_INDEXES,
+  CREATE_WEAVE_REFERENCES_INDEXES,
 ];
 
 /**
@@ -713,6 +781,27 @@ export const COLUMN_MAPPINGS = {
     learning: 'learning',
     category: 'category',
     confidence: 'confidence',
+    createdAt: 'created_at',
+  },
+  weaveEntries: {
+    id: 'id',
+    dimension: 'dimension',
+    type: 'type',
+    concept: 'concept',
+    description: 'description',
+    confidence: 'confidence',
+    evidence: 'evidence',
+    discoveredIn: 'discovered_in',
+    discoveredAt: 'discovered_at',
+    metadata: 'metadata',
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+  },
+  weaveReferences: {
+    id: 'id',
+    fromEntryId: 'from_entry_id',
+    toEntryId: 'to_entry_id',
+    relationType: 'relation_type',
     createdAt: 'created_at',
   },
 } as const;
