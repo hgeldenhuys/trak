@@ -35,7 +35,8 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 if [ -n "$TRAK_DIR" ]; then
-    cd "$TRAK_DIR" && exec bun run src/tui/index.tsx "$@"
+    # Run from package dir but keep user's cwd for database resolution
+    exec bun run "$TRAK_DIR/src/tui/index.tsx" "$@"
 else
     # Fallback to binary if available
     BINARY="$SCRIPT_DIR/.board-tui-binary"
