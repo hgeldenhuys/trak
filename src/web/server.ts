@@ -23,6 +23,7 @@ import {
   renderBlocked,
   renderRetros,
   renderSystemInfo,
+  renderAgents,
 } from './views';
 import {
   featureRepository,
@@ -31,6 +32,8 @@ import {
   acceptanceCriteriaRepository,
   noteRepository,
   impedimentRepository,
+  agentDefinitionRepository,
+  agentLearningRepository,
 } from '../repositories';
 import { getEventBus } from '../events/event-bus';
 import { initDb, getDbPath, isDbInitialized, getSchemaVersion, getDb, resolveDbPath } from '../db';
@@ -207,6 +210,18 @@ function handleSystemInfo(): Response {
   });
 }
 
+function handleAgents(): Response {
+  ensureDbInitialized();
+
+  const definitions = agentDefinitionRepository.findAll();
+  const learnings = agentLearningRepository.findAll();
+
+  const html = renderAgents({ definitions, learnings });
+  return new Response(html, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
+}
+
 /**
  * SSE endpoint handler
  *
@@ -374,6 +389,10 @@ function handleRequest(req: Request): Response {
 
   if (path === '/system') {
     return handleSystemInfo();
+  }
+
+  if (path === '/agents') {
+    return handleAgents();
   }
 
   if (path === '/api/events') {

@@ -53,3 +53,10 @@ export type { SystemInfoViewProps } from './SystemInfoView';
 
 export { ChartsView } from './ChartsView';
 export type { ChartsViewProps } from './ChartsView';
+
+// =============================================================================
+// Agents View
+// =============================================================================
+
+export { AgentsView } from './AgentsView';
+export type { AgentsViewProps } from './AgentsView';

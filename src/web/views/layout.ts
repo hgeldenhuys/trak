@@ -22,6 +22,7 @@ const navItems = [
   { path: '/list', label: 'List' },
   { path: '/blocked', label: 'Blocked' },
   { path: '/retros', label: 'Retros' },
+  { path: '/agents', label: 'Agents' },
   { path: '/system', label: 'System' },
 ];
 

@@ -25,5 +25,8 @@ export type { RetrosViewData } from './retros';
 export { renderSystemInfo } from './system';
 export type { SystemInfoData } from './system';
 
+export { renderAgents } from './agents';
+export type { AgentsViewData } from './agents';
+
 export { renderLayout, escapeHtml, formatRelativeTime, truncate } from './layout';
 export { styles } from './styles';

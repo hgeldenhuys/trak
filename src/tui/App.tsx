@@ -46,7 +46,7 @@ function cleanExit(code: number = 0): void {
 }
 
 // Import views
-import { KanbanBoard, StoryDetailView, ListView, BlockedView, RetrospectivesView, SystemInfoView, ChartsView } from './views';
+import { KanbanBoard, StoryDetailView, ListView, BlockedView, RetrospectivesView, SystemInfoView, ChartsView, AgentsView } from './views';
 import { ViewSwitcher } from './components';
 import type { ViewType } from './components';
 import { useStory } from './hooks';
@@ -61,14 +61,15 @@ const VIEW_LABELS: Record<ViewType, string> = {
   blocked: 'Blocked View',
   retros: 'Retrospectives',
   charts: 'Charts',
+  agents: 'Agents',
   systeminfo: 'System Info',
 };
 
 /**
  * All available views in cycle order
- * Order: Board[1], List[2], Story[3], Blocked[4], Retros[5], Charts[6], System[0]
+ * Order: Board[1], List[2], Story[3], Blocked[4], Retros[5], Charts[6], Agents[7], System[0]
  */
-const VIEWS: ViewType[] = ['board', 'list', 'story', 'blocked', 'retros', 'charts', 'systeminfo'];
+const VIEWS: ViewType[] = ['board', 'list', 'story', 'blocked', 'retros', 'charts', 'agents', 'systeminfo'];
 
 /**
  * App state for sharing between components
@@ -180,6 +181,9 @@ export function App() {
     }
     if (event.name === '6') {
       setCurrentView('charts');
+    }
+    if (event.name === '7') {
+      setCurrentView('agents');
     }
     if (event.name === '0') {
       setCurrentView('systeminfo');
@@ -310,6 +314,13 @@ export function App() {
           />
         );
 
+      case 'agents':
+        return (
+          <AgentsView
+            onEscape={() => setCurrentView('board')}
+          />
+        );
+
       case 'systeminfo':
         return (
           <SystemInfoView
@@ -367,7 +378,7 @@ export function App() {
         flexDirection="row"
       >
         <text fg="gray">
-          TAB:switch view  1-6,0:jump to view  ESC:back  q:quit
+          TAB:switch view  1-7,0:jump to view  ESC:back  q:quit
         </text>
       </box>
     </box>
