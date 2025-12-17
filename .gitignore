@@ -27,3 +27,4 @@ yarn-error.log*
 
 BOARD-CLI-SPEC.md
 node_modules/
+notify-service/node_modules
