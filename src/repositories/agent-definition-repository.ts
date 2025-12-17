@@ -189,6 +189,27 @@ export class AgentDefinitionRepository {
   }
 
   /**
+   * Find all agent definitions created for a specific story
+   *
+   * AC Coverage: AC-001 (LOOM-003)
+   *
+   * @param storyCode - The story code (e.g., SESSION-001, LOOM-003)
+   * @returns Array of agent definitions created for this story
+   */
+  findByStory(storyCode: string): AgentDefinition[] {
+    const db = getDb();
+    const rows = db
+      .query(`SELECT * FROM ${TABLES.AGENT_DEFINITIONS} WHERE created_for_story = ? ORDER BY name, version DESC`)
+      .all(storyCode) as AgentDefinitionRow[];
+
+    const entities: AgentDefinition[] = [];
+    for (const row of rows) {
+      entities.push(rowToEntity(row));
+    }
+    return entities;
+  }
+
+  /**
    * Find all agent definitions
    */
   findAll(): AgentDefinition[] {

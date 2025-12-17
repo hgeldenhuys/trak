@@ -11,7 +11,7 @@
  */
 
 import { Command } from 'commander';
-import { taskRepository, storyRepository } from '../../repositories';
+import { taskRepository, storyRepository, noteRepository, agentDefinitionRepository } from '../../repositories';
 import {
   output,
   success,
@@ -26,6 +26,11 @@ import {
 } from '../utils/output';
 import { TaskStatus, Priority } from '../../types';
 import type { Task, Story, UpdateTaskInput } from '../../types';
+import {
+  validateVersionedAssignee,
+  ValidationError,
+  formatValidationError,
+} from '../../validation';
 
 /**
  * Valid task status values for CLI validation
@@ -223,6 +228,26 @@ taskCommand
     const acCoverage = options.covers
       ? options.covers.split(',').map((code: string) => code.trim()).filter(Boolean)
       : [];
+
+    // Validate assignee against agent definitions (if story uses managed agents)
+    // Stories with agent definitions enforce versioned agent assignments
+    // Stories without agent definitions allow free-form assignees
+    if (options.assignedTo) {
+      const storyAgents = agentDefinitionRepository.findByStory(story.code);
+      if (storyAgents.length > 0) {
+        // Story uses managed agents - enforce versioned agent validation
+        try {
+          validateVersionedAssignee(options.assignedTo, options.story);
+        } catch (err) {
+          if (err instanceof ValidationError) {
+            error(formatValidationError(err));
+            process.exit(1);
+          }
+          throw err;
+        }
+      }
+      // else: Story has no agent definitions - allow any assignee
+    }
 
     try {
       const task = taskRepository.create({
@@ -476,6 +501,8 @@ taskCommand
  * Quick status update: `board task status abc123 completed`
  * Uses updateStatus() method which emits task:status-changed event.
  *
+ * AC Coverage: AC-003 (LOOM-003) - Soft validation for mini-retrospectives
+ *
  * @emits task:status-changed
  */
 taskCommand
@@ -490,6 +517,26 @@ taskCommand
       const newStatus = validateStatus(status);
 
       verbose(`Found task: ${taskId} (${beforeTask.title})`);
+
+      // AC-003 (LOOM-003): Soft validation for mini-retrospectives when completing tasks
+      if (newStatus === TaskStatus.COMPLETED && beforeTask.status !== TaskStatus.COMPLETED) {
+        const taskNotes = noteRepository.findByEntity('task', taskId);
+        const hasRetroNote = taskNotes.some(note =>
+          note.content.toLowerCase().includes('retrospective') ||
+          note.content.toLowerCase().includes('retro') ||
+          note.content.toLowerCase().includes('learnings') ||
+          note.content.toLowerCase().includes('what went well') ||
+          note.content.toLowerCase().includes('improvement')
+        );
+
+        if (!hasRetroNote) {
+          warn('');
+          warn('⚠️  Mini-Retrospective Missing');
+          warn('   This task has no retrospective notes. Consider adding learnings:');
+          warn(`   board note add -t task -i ${taskId.slice(0, 8)} -c "Retrospective: ..."`);
+          warn('');
+        }
+      }
 
       const updatedTask = taskRepository.updateStatus(taskId, newStatus);
 

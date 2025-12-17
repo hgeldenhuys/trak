@@ -31,6 +31,7 @@ import { createArdCommand } from './commands/ard';
 import { createAgentCommand } from './commands/agent';
 import { createLearningCommand } from './commands/learning';
 import { createWeaveCommand } from './commands/weave';
+import { createValidateCommand } from './commands/validate';
 
 /**
  * Get the default database path
@@ -170,6 +171,9 @@ function createProgram(): Command {
 
   // Weave command with add, list, show, search, delete, summary, ref subcommands
   program.addCommand(createWeaveCommand());
+
+  // Validate command with story subcommand (LOOM-003: AC-006)
+  program.addCommand(createValidateCommand());
 
   return program;
 }

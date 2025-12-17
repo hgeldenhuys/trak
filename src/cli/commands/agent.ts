@@ -16,15 +16,19 @@ export function createAgentCommand(): Command {
 
   /**
    * agent list - List all agent definitions
+   * AC Coverage: AC-001 (LOOM-003) - Added --story filter
    */
   cmd
     .command('list')
     .description('List all agent definitions')
     .option('-r, --role <role>', 'Filter by role')
+    .option('-s, --story <storyCode>', 'Filter by story code (e.g., SESSION-001)')
     .action((options) => {
       let definitions;
 
-      if (options.role) {
+      if (options.story) {
+        definitions = agentDefinitionRepository.findByStory(options.story);
+      } else if (options.role) {
         definitions = agentDefinitionRepository.findByRole(options.role);
       } else {
         definitions = agentDefinitionRepository.findAll();
