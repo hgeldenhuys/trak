@@ -8,6 +8,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useKeyboard, useTerminalDimensions } from '@opentui/react';
 import { TextAttributes, type KeyEvent } from '@opentui/core';
+import { execSync } from 'child_process';
 
 /**
  * Reset terminal to normal state
@@ -29,6 +30,11 @@ function resetTerminal(): void {
   ].join('');
 
   process.stdout.write(resetSequence);
+
+  // Run stty sane to fully restore terminal state
+  try {
+    execSync('stty sane', { stdio: 'ignore' });
+  } catch {}
 }
 
 /**
