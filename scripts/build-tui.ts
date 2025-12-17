@@ -34,6 +34,28 @@ if (result.exitCode === 0) {
   const sizeBytes = await file.size;
   const sizeMB = (sizeBytes / 1024 / 1024).toFixed(1);
   console.log(`  Size: ${sizeMB} MB`);
+
+  // On macOS, remove quarantine attribute to prevent Gatekeeper blocking
+  // Note: Bun-compiled binaries cannot be ad-hoc signed due to structural issues
+  if (process.platform === 'darwin') {
+    console.log('');
+    console.log('Preparing binary for macOS...');
+
+    // Remove quarantine attribute if present (prevents "app is damaged" errors)
+    try {
+      await $`xattr -d com.apple.quarantine ${TARGET} 2>/dev/null`.nothrow();
+    } catch {
+      // Ignore - attribute may not exist
+    }
+    console.log('  [OK] Quarantine attribute cleared');
+
+    // Note about Gatekeeper
+    console.log('');
+    console.log('Note: If macOS blocks the binary, run:');
+    console.log(`  xattr -d com.apple.quarantine ${TARGET}`);
+    console.log('  or allow in System Settings > Privacy & Security');
+  }
+
   console.log('');
   console.log('To run:');
   console.log(`  TMPDIR=/tmp ./${TARGET}`);
