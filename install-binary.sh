@@ -67,8 +67,11 @@ curl -fSL "$DOWNLOAD_BASE/board-cli-${PLATFORM}-${ARCH}" -o "$TMP_DIR/board-cli"
 echo -e "${BLUE}Downloading board-tui-${PLATFORM}-${ARCH}...${NC}"
 curl -fSL "$DOWNLOAD_BASE/board-tui-${PLATFORM}-${ARCH}" -o "$TMP_DIR/board-tui" --progress-bar
 
+echo -e "${BLUE}Downloading board-web-${PLATFORM}-${ARCH}...${NC}"
+curl -fSL "$DOWNLOAD_BASE/board-web-${PLATFORM}-${ARCH}" -o "$TMP_DIR/board-web" --progress-bar
+
 # Make executable
-chmod +x "$TMP_DIR/board-cli" "$TMP_DIR/board-tui"
+chmod +x "$TMP_DIR/board-cli" "$TMP_DIR/board-tui" "$TMP_DIR/board-web"
 
 # Install (may need sudo)
 echo ""
@@ -77,10 +80,12 @@ echo -e "${BLUE}Installing to $INSTALL_DIR...${NC}"
 if [[ -w "$INSTALL_DIR" ]]; then
     mv "$TMP_DIR/board-cli" "$INSTALL_DIR/board"
     mv "$TMP_DIR/board-tui" "$INSTALL_DIR/board-tui"
+    mv "$TMP_DIR/board-web" "$INSTALL_DIR/board-web"
 else
     echo "Requires sudo to install to $INSTALL_DIR"
     sudo mv "$TMP_DIR/board-cli" "$INSTALL_DIR/board"
     sudo mv "$TMP_DIR/board-tui" "$INSTALL_DIR/board-tui"
+    sudo mv "$TMP_DIR/board-web" "$INSTALL_DIR/board-web"
 fi
 
 # Verify installation
@@ -91,19 +96,23 @@ if command -v board &> /dev/null; then
     echo ""
     echo "  board     -> $INSTALL_DIR/board (v$VERSION)"
     echo "  board-tui -> $INSTALL_DIR/board-tui"
+    echo "  board-web -> $INSTALL_DIR/board-web"
     echo ""
     echo -e "${BLUE}Usage:${NC}"
     echo "  board --help           # CLI help"
+    echo "  board-web              # Start web server (default port 3345)"
     if [[ "$PLATFORM" == "darwin" ]]; then
         echo "  TMPDIR=/tmp board-tui  # Launch TUI (macOS workaround)"
         echo ""
-        echo -e "${BLUE}Recommended alias (add to ~/.zshrc):${NC}"
+        echo -e "${BLUE}Recommended aliases (add to ~/.zshrc):${NC}"
         echo "  alias trak='TMPDIR=/tmp board-tui'"
+        echo "  alias trak-web='board-web'"
     else
         echo "  board-tui              # Launch TUI"
         echo ""
-        echo -e "${BLUE}Recommended alias (add to ~/.bashrc):${NC}"
+        echo -e "${BLUE}Recommended aliases (add to ~/.bashrc):${NC}"
         echo "  alias trak='board-tui'"
+        echo "  alias trak-web='board-web'"
     fi
 else
     echo -e "${RED}Installation may have failed. Check $INSTALL_DIR${NC}"

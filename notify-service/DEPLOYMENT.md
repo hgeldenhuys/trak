@@ -210,11 +210,11 @@ cd /opt/notify-service
 
 # Key for hooks running on this server
 ~/.bun/bin/bun run src/admin-cli.ts key create --name "server-hooks"
-# Output: Created SDK key: tk_test_xxxxxxxxxxxxx (SAVE THIS!)
+# Output: Created SDK key: sk_live_xxxxxxxxxxxxx (SAVE THIS!)
 
 # Key for remote clients (e.g., your local machine)
 ~/.bun/bin/bun run src/admin-cli.ts key create --name "macbook-pro"
-# Output: Created SDK key: tk_test_yyyyyyyyyyyyy (SAVE THIS!)
+# Output: Created SDK key: sk_live_yyyyyyyyyyyyy (SAVE THIS!)
 
 # List all keys
 ~/.bun/bin/bun run src/admin-cli.ts key list
@@ -228,7 +228,7 @@ Add `sdkKey` to the server's `~/.claude-notify/config.json`:
 
 ```bash
 # Add sdkKey to existing config
-jq '.sdkKey = "tk_test_xxxxxxxxxxxxx"' ~/.claude-notify/config.json > /tmp/config.json \
+jq '.sdkKey = "sk_live_xxxxxxxxxxxxx"' ~/.claude-notify/config.json > /tmp/config.json \
   && mv /tmp/config.json ~/.claude-notify/config.json
 ```
 
@@ -241,7 +241,7 @@ For machines connecting remotely, update their `~/.claude-notify/config.json`:
 ```json
 {
   "remoteUrl": "https://notify.yourdomain.com",
-  "sdkKey": "tk_test_yyyyyyyyyyyyy"
+  "sdkKey": "sk_live_yyyyyyyyyyyyy"
 }
 ```
 
@@ -268,7 +268,7 @@ EOF
 
 # Send with auth header
 curl -X POST \
-  -H "Authorization: Bearer tk_test_xxxxxxxxxxxxx" \
+  -H "Authorization: Bearer sk_live_xxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d @/tmp/test-notify.json \
   https://notify.yourdomain.com/notify

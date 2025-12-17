@@ -22,16 +22,19 @@
   "main": "dist/index.js",
   "bin": {
     "board": "bin/board",
-    "board-tui": "bin/board-tui"
+    "board-tui": "bin/board-tui",
+    "board-web": "bin/board-web"
   },
   "scripts": {
-    "build": "bun run build:cli && bun run build:tui",
+    "build": "bun run build:cli && bun run build:tui && bun run build:web",
     "build:cli": "bun run scripts/build-cli.ts",
     "build:tui": "bun run scripts/build-tui.ts",
+    "build:web": "bun run scripts/build-web.ts",
     "install:global": "bun run scripts/install.ts",
     "install:local": "bun run scripts/install.ts --local",
     "board": "bun run src/cli/index.ts",
     "tui": "TMPDIR=/tmp bun run src/tui/index.tsx",
+    "web": "bun run src/web/index.ts",
     "test": "bun test",
     "prepublishOnly": "bun run build",
     "postinstall": "node scripts/postinstall.js"

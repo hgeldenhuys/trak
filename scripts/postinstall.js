@@ -100,7 +100,8 @@ async function main() {
 
   const binaries = [
     { name: 'board-cli', dest: '.board-binary' },
-    { name: 'board-tui', dest: '.board-tui-binary' }
+    { name: 'board-tui', dest: '.board-tui-binary' },
+    { name: 'board-web', dest: '.board-web-binary' }
   ];
 
   console.log(`\nDownloading binaries from release ${releaseTag}...`);
@@ -148,11 +149,13 @@ async function main() {
   // Verify installation
   const boardPath = path.join(BIN_DIR, '.board-binary');
   const tuiPath = path.join(BIN_DIR, '.board-tui-binary');
+  const webPath = path.join(BIN_DIR, '.board-web-binary');
 
-  if (fs.existsSync(boardPath) && fs.existsSync(tuiPath)) {
+  if (fs.existsSync(boardPath) && fs.existsSync(tuiPath) && fs.existsSync(webPath)) {
     console.log(`\nInstallation successful!`);
     console.log(`\nUsage:`);
     console.log(`  board --help           # CLI help`);
+    console.log(`  board-web              # Start web server (port 3345)`);
     if (platform === 'darwin') {
       console.log(`  TMPDIR=/tmp board-tui  # Launch TUI (macOS workaround)`);
     } else {

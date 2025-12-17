@@ -55,6 +55,7 @@ jobs:
         run: |
           mv dist/board-cli dist/board-cli-${{ matrix.platform }}-${{ matrix.arch }}
           mv dist/board-tui dist/board-tui-${{ matrix.platform }}-${{ matrix.arch }}
+          mv dist/board-web dist/board-web-${{ matrix.platform }}-${{ matrix.arch }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -63,6 +64,7 @@ jobs:
           path: |
             dist/board-cli-${{ matrix.platform }}-${{ matrix.arch }}
             dist/board-tui-${{ matrix.platform }}-${{ matrix.arch }}
+            dist/board-web-${{ matrix.platform }}-${{ matrix.arch }}
 
   release:
     needs: build
@@ -102,22 +104,25 @@ jobs:
 
             ## Binaries
 
-            | Platform | CLI | TUI |
-            |----------|-----|-----|
-            | macOS (Apple Silicon) | `board-cli-darwin-arm64` | `board-tui-darwin-arm64` |
-            | Linux (x64) | `board-cli-linux-x64` | `board-tui-linux-x64` |
+            | Platform | CLI | TUI | Web |
+            |----------|-----|-----|-----|
+            | macOS (Apple Silicon) | `board-cli-darwin-arm64` | `board-tui-darwin-arm64` | `board-web-darwin-arm64` |
+            | Linux (x64) | `board-cli-linux-x64` | `board-tui-linux-x64` | `board-web-linux-x64` |
 
             ## Usage
             ```bash
             board --help           # CLI help
+            board-web              # Start web server (port 3345)
             TMPDIR=/tmp board-tui  # Launch TUI (macOS)
             board-tui              # Launch TUI (Linux)
             ```
           files: |
             dist/board-cli-darwin-arm64
             dist/board-tui-darwin-arm64
+            dist/board-web-darwin-arm64
             dist/board-cli-linux-x64
             dist/board-tui-linux-x64
+            dist/board-web-linux-x64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
