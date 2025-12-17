@@ -36,8 +36,8 @@ const GLOBAL_DB_NAME = 'data.db';
  * Resolution order:
  * 1. Explicit override path (if provided)
  * 2. BOARD_DB_PATH environment variable
- * 3. Local .board.db in current directory (if exists)
- * 4. Global ~/.board/data.db (fallback, creates if needed)
+ * 3. BOARD_GLOBAL=1 uses global ~/.board/data.db
+ * 4. Local .board.db in current directory (DEFAULT - creates if needed)
  *
  * @param overridePath - Explicit path override (highest priority)
  * @returns Resolved database path
@@ -48,24 +48,24 @@ export function resolveDbPath(overridePath?: string): string {
     return overridePath;
   }
 
-  // 2. Environment variable
+  // 2. Environment variable for explicit path
   const envPath = process.env.BOARD_DB_PATH;
   if (envPath) {
     return envPath;
   }
 
-  // 3. Local .board.db in current directory (project-centric)
-  const localPath = join(process.cwd(), LOCAL_DB_NAME);
-  if (existsSync(localPath)) {
-    return localPath;
+  // 3. Explicit global database request
+  if (process.env.BOARD_GLOBAL === '1') {
+    const globalDir = join(homedir(), GLOBAL_DB_DIR);
+    if (!existsSync(globalDir)) {
+      mkdirSync(globalDir, { recursive: true });
+    }
+    return join(globalDir, GLOBAL_DB_NAME);
   }
 
-  // 4. Global ~/.board/data.db (fallback)
-  const globalDir = join(homedir(), GLOBAL_DB_DIR);
-  if (!existsSync(globalDir)) {
-    mkdirSync(globalDir, { recursive: true });
-  }
-  return join(globalDir, GLOBAL_DB_NAME);
+  // 4. ALWAYS use local .board.db in current directory (project-centric)
+  // This creates the database in the current project folder
+  return join(process.cwd(), LOCAL_DB_NAME);
 }
 
 /**

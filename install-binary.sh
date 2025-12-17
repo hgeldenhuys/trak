@@ -103,13 +103,20 @@ if command -v board &> /dev/null; then
     echo "  board-web              # Start web server (default port 3345)"
     if [[ "$PLATFORM" == "darwin" ]]; then
         echo "  TMPDIR=/tmp board-tui  # Launch TUI (macOS workaround)"
-        echo ""
+    else
+        echo "  board-tui              # Launch TUI"
+    fi
+    echo ""
+    echo -e "${BLUE}Database Location:${NC}"
+    echo "  By default, trak uses .board.db in the CURRENT directory."
+    echo "  Run 'board init' in your project folder to create a new board."
+    echo "  Use BOARD_GLOBAL=1 to use the global database (~/.board/data.db)"
+    echo ""
+    if [[ "$PLATFORM" == "darwin" ]]; then
         echo -e "${BLUE}Recommended aliases (add to ~/.zshrc):${NC}"
         echo "  alias trak='TMPDIR=/tmp board-tui'"
         echo "  alias trak-web='board-web'"
     else
-        echo "  board-tui              # Launch TUI"
-        echo ""
         echo -e "${BLUE}Recommended aliases (add to ~/.bashrc):${NC}"
         echo "  alias trak='board-tui'"
         echo "  alias trak-web='board-web'"
