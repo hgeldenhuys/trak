@@ -16,8 +16,12 @@
  */
 
 import React from 'react';
+import { useTerminalDimensions } from '@opentui/react';
 import type { Story, Priority } from '../../types';
 import { formatRelativeTime } from '../utils';
+
+/** Number of columns in the Kanban board */
+const KANBAN_COLUMNS = 5;
 
 /**
  * Priority color mapping
@@ -73,10 +77,16 @@ export function StoryCard({
   completedTasks = 0,
   totalTasks = 0,
 }: StoryCardProps) {
+  const { width: termWidth } = useTerminalDimensions();
   const priorityColor = PRIORITY_COLORS[story.priority as Priority] || 'white';
 
-  // Truncate title if too long (max 25 chars)
-  const title = story.title.length > 25 ? story.title.slice(0, 22) + '...' : story.title;
+  // Calculate available text width dynamically based on terminal width
+  // Layout: 5 columns with gap=1 (4 gaps), each column has border (2), card has padding (2) + border (2)
+  const columnWidth = Math.floor((termWidth - 4) / KANBAN_COLUMNS);
+  const textWidth = Math.max(15, columnWidth - 6); // 6 = column border (2) + card padding (2) + card border (2)
+
+  // Truncate title if too long (dynamic based on available width)
+  const title = story.title.length > textWidth ? story.title.slice(0, textWidth - 3) + '...' : story.title;
 
   // Get assignee or default to 'Unassigned'
   const assignee = story.assignedTo || 'Unassigned';

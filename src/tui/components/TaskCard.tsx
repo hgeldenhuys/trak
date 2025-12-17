@@ -16,8 +16,12 @@
  */
 
 import React from 'react';
+import { useTerminalDimensions } from '@opentui/react';
 import type { Task, Priority } from '../../types';
 import { formatRelativeTime } from '../utils';
+
+/** Number of columns in the Kanban board */
+const KANBAN_COLUMNS = 5;
 
 /**
  * Priority color mapping
@@ -64,10 +68,16 @@ export interface TaskCardProps {
  * ```
  */
 export function TaskCard({ task, storyCode, isFocused, onSelect }: TaskCardProps) {
+  const { width: termWidth } = useTerminalDimensions();
   const priorityColor = PRIORITY_COLORS[task.priority as Priority] || 'white';
 
-  // Truncate title if too long (max 25 chars)
-  const title = task.title.length > 25 ? task.title.slice(0, 22) + '...' : task.title;
+  // Calculate available text width dynamically based on terminal width
+  // Layout: 5 columns with gap=1 (4 gaps), each column has border (2), card has padding (2) + border (2)
+  const columnWidth = Math.floor((termWidth - 4) / KANBAN_COLUMNS);
+  const textWidth = Math.max(15, columnWidth - 6); // 6 = column border (2) + card padding (2) + card border (2)
+
+  // Truncate title if too long (dynamic based on available width)
+  const title = task.title.length > textWidth ? task.title.slice(0, textWidth - 3) + '...' : task.title;
 
   // Get assignee or default to 'Unassigned'
   const assignee = task.assignedTo || 'Unassigned';
@@ -75,10 +85,10 @@ export function TaskCard({ task, storyCode, isFocused, onSelect }: TaskCardProps
   // Get relative timestamp
   const relativeTime = formatRelativeTime(task.updatedAt);
 
-  // Get description preview (first 30 chars)
+  // Get description preview (dynamic based on available width)
   const descriptionPreview = task.description
-    ? (task.description.length > 30
-        ? task.description.slice(0, 27) + '...'
+    ? (task.description.length > textWidth
+        ? task.description.slice(0, textWidth - 3) + '...'
         : task.description)
     : '';
 
