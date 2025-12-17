@@ -32,6 +32,7 @@ import { createAgentCommand } from './commands/agent';
 import { createLearningCommand } from './commands/learning';
 import { createWeaveCommand } from './commands/weave';
 import { createValidateCommand } from './commands/validate';
+import { createInfoCommand } from './commands/info';
 
 /**
  * Get the default database path
@@ -83,10 +84,10 @@ function createProgram(): Command {
     verbose(`Actor: ${options.actor}`);
     verbose(`JSON output: ${options.json}`);
 
-    // Skip database initialization for 'init' command - it handles its own setup
+    // Skip database initialization for commands that don't need it
     const commandName = actionCommand.name();
-    if (commandName === 'init') {
-      verbose('Skipping preAction db init for init command');
+    if (commandName === 'init' || commandName === 'info') {
+      verbose(`Skipping preAction db init for ${commandName} command`);
       return;
     }
 
@@ -174,6 +175,9 @@ function createProgram(): Command {
 
   // Validate command with story subcommand (LOOM-003: AC-006)
   program.addCommand(createValidateCommand());
+
+  // Info command to show configuration and database path
+  program.addCommand(createInfoCommand());
 
   return program;
 }
