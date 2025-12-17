@@ -61,7 +61,7 @@ function createProgram(): Command {
     .option('-v, --verbose', 'Verbose output', false);
 
   // Global hook to initialize database and set output options before any command
-  program.hook('preAction', async (thisCommand) => {
+  program.hook('preAction', async (thisCommand, actionCommand) => {
     const options = thisCommand.opts();
 
     // Set global output options for all commands
@@ -81,6 +81,13 @@ function createProgram(): Command {
     verbose(`Database path: ${options.dbPath}`);
     verbose(`Actor: ${options.actor}`);
     verbose(`JSON output: ${options.json}`);
+
+    // Skip database initialization for 'init' command - it handles its own setup
+    const commandName = actionCommand.name();
+    if (commandName === 'init') {
+      verbose('Skipping preAction db init for init command');
+      return;
+    }
 
     // Initialize database
     try {
