@@ -246,8 +246,8 @@ describe('FieldMapper', () => {
       expect(mapper.trakStatusToAdoState('draft')).toBe('New');
     });
 
-    it('maps planned to New', () => {
-      expect(mapper.trakStatusToAdoState('planned')).toBe('New');
+    it('maps planned to Approved (for Scrum process)', () => {
+      expect(mapper.trakStatusToAdoState('planned')).toBe('Approved');
     });
 
     it('maps in_progress to Active', () => {

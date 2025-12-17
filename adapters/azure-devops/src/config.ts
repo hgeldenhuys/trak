@@ -37,8 +37,16 @@ export const DEFAULT_BATCH_SIZE = 100;
 /** Default server host (localhost only for security) */
 export const DEFAULT_HOST = '127.0.0.1';
 
-/** Default work item types to sync (includes Basic, Agile, and Scrum process types) */
-export const DEFAULT_WORK_ITEM_TYPES = ['User Story', 'Bug', 'Issue', 'Task', 'Epic', 'Feature'];
+/** Default work item types to sync (supports Basic, Agile, and Scrum process templates) */
+export const DEFAULT_WORK_ITEM_TYPES = [
+  'User Story',           // Agile process
+  'Product Backlog Item', // Scrum process (PBI)
+  'Bug',                  // All processes
+  'Issue',                // Basic process
+  'Task',                 // All processes
+  'Epic',                 // Agile/Scrum
+  'Feature',              // Agile/Scrum
+];
 
 /** Adapter version */
 export const VERSION = '0.1.0';
@@ -50,13 +58,20 @@ export const VERSION = '0.1.0';
 /**
  * Default state mapping between ADO and trak
  *
- * Supports both Agile and Basic process templates:
+ * Supports Agile, Scrum, and Basic process templates:
  *
  * Agile States -> Trak Status:
  * - New -> draft
  * - Active -> in_progress
  * - Resolved -> review
  * - Closed -> completed
+ * - Removed -> cancelled
+ *
+ * Scrum States -> Trak Status:
+ * - New -> draft
+ * - Approved -> planned
+ * - Committed -> in_progress
+ * - Done -> completed
  * - Removed -> cancelled
  *
  * Basic States -> Trak Status:
@@ -72,6 +87,9 @@ export const DEFAULT_STATE_MAPPING: StateMapping = {
     'Resolved': 'review',
     'Closed': 'completed',
     'Removed': 'cancelled',
+    // Scrum process states
+    'Approved': 'planned',
+    'Committed': 'in_progress',
     // Basic process states
     'To Do': 'draft',
     'Doing': 'in_progress',
@@ -79,8 +97,8 @@ export const DEFAULT_STATE_MAPPING: StateMapping = {
   },
   outbound: {
     'draft': 'New',
-    'planned': 'New',
-    'in_progress': 'Active',
+    'planned': 'Approved',      // Maps to Scrum 'Approved' (falls back to 'New' in Agile)
+    'in_progress': 'Active',    // Works for Agile; Scrum uses 'Committed' but 'Active' is safer
     'review': 'Resolved',
     'completed': 'Closed',
     'cancelled': 'Removed',

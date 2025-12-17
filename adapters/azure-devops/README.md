@@ -275,19 +275,41 @@ export default createHook({
 });
 ```
 
+## Supported Process Templates
+
+The adapter supports three Azure DevOps process templates out of the box:
+
+### Work Item Types
+
+| Process | Work Item Types |
+|---------|-----------------|
+| **Basic** | Issue, Task, Epic |
+| **Agile** | User Story, Bug, Task, Feature, Epic |
+| **Scrum** | Product Backlog Item (PBI), Bug, Task, Feature, Epic |
+
+All types are enabled by default. Use `--mapping-config` to limit to specific types.
+
 ## Field Mapping
 
 ### Default Mappings
 
-**Status/State Mapping:**
+**Status/State Mapping by Process Template:**
 
-| ADO State | Trak Status |
-|-----------|-------------|
-| New | draft |
-| Active | in_progress |
-| Resolved | review |
-| Closed | completed |
-| Removed | cancelled |
+| Process | ADO State | Trak Status |
+|---------|-----------|-------------|
+| **Agile** | New | draft |
+| | Active | in_progress |
+| | Resolved | review |
+| | Closed | completed |
+| | Removed | cancelled |
+| **Scrum** | New | draft |
+| | Approved | planned |
+| | Committed | in_progress |
+| | Done | completed |
+| | Removed | cancelled |
+| **Basic** | To Do | draft |
+| | Doing | in_progress |
+| | Done | completed |
 
 **Priority Mapping:**
 
@@ -357,6 +379,31 @@ fields:
 workItemTypes:
   - User Story
   - Bug
+```
+
+**Example: Scrum Process Only**
+
+```yaml
+# scrum-mapping.yaml
+states:
+  inbound:
+    New: draft
+    Approved: planned
+    Committed: in_progress
+    Done: completed
+    Removed: cancelled
+  outbound:
+    draft: New
+    planned: Approved
+    in_progress: Committed
+    review: Committed
+    completed: Done
+    cancelled: Removed
+
+workItemTypes:
+  - Product Backlog Item
+  - Bug
+  - Task
 ```
 
 Use with: `--mapping-config ./my-mapping.yaml`
