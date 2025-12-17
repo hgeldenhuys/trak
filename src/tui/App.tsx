@@ -5,12 +5,42 @@
  * Provides the top-level container and view switching logic.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useKeyboard, useTerminalDimensions } from '@opentui/react';
 import { TextAttributes, type KeyEvent } from '@opentui/core';
 
+/**
+ * Reset terminal to normal state
+ * Restores cursor, exits alternate screen, resets modes
+ */
+function resetTerminal(): void {
+  // Reset sequence: show cursor, exit alternate screen, reset modes
+  const resetSequence = [
+    '\x1b[?25h',      // Show cursor
+    '\x1b[?1049l',    // Exit alternate screen buffer
+    '\x1b[?1000l',    // Disable mouse tracking
+    '\x1b[?1002l',    // Disable mouse button tracking
+    '\x1b[?1003l',    // Disable all mouse tracking
+    '\x1b[?1006l',    // Disable SGR mouse mode
+    '\x1b[?2004l',    // Disable bracketed paste
+    '\x1b[0m',        // Reset all attributes
+    '\x1b[H\x1b[J',   // Clear screen (for good measure)
+    '\x1bc',          // Full terminal reset (RIS)
+  ].join('');
+
+  process.stdout.write(resetSequence);
+}
+
+/**
+ * Clean exit with terminal reset
+ */
+function cleanExit(code: number = 0): void {
+  resetTerminal();
+  process.exit(code);
+}
+
 // Import views
-import { KanbanBoard, StoryDetailView, ListView, BlockedView, RetrospectivesView, SystemInfoView } from './views';
+import { KanbanBoard, StoryDetailView, ListView, BlockedView, RetrospectivesView, SystemInfoView, ChartsView } from './views';
 import { ViewSwitcher } from './components';
 import type { ViewType } from './components';
 import { useStory } from './hooks';
@@ -24,13 +54,15 @@ const VIEW_LABELS: Record<ViewType, string> = {
   list: 'List View',
   blocked: 'Blocked View',
   retros: 'Retrospectives',
+  charts: 'Charts',
   systeminfo: 'System Info',
 };
 
 /**
  * All available views in cycle order
+ * Order: Board[1], List[2], Story[3], Blocked[4], Retros[5], Charts[6], System[0]
  */
-const VIEWS: ViewType[] = ['board', 'story', 'list', 'blocked', 'retros', 'systeminfo'];
+const VIEWS: ViewType[] = ['board', 'list', 'story', 'blocked', 'retros', 'charts', 'systeminfo'];
 
 /**
  * App state for sharing between components
@@ -80,16 +112,38 @@ export function App() {
     });
   }, []);
 
+  // Setup exit handlers on mount
+  useEffect(() => {
+    // Handle SIGINT (Ctrl+C) and SIGTERM
+    const handleSignal = () => cleanExit(0);
+    process.on('SIGINT', handleSignal);
+    process.on('SIGTERM', handleSignal);
+
+    // Handle uncaught exceptions
+    const handleError = (err: Error) => {
+      resetTerminal();
+      console.error('Uncaught error:', err);
+      process.exit(1);
+    };
+    process.on('uncaughtException', handleError);
+
+    return () => {
+      process.off('SIGINT', handleSignal);
+      process.off('SIGTERM', handleSignal);
+      process.off('uncaughtException', handleError);
+    };
+  }, []);
+
   // Global keyboard handler
   useKeyboard((event: KeyEvent) => {
     // Quit application
     if (event.name === 'q' && event.ctrl) {
-      process.exit(0);
+      cleanExit(0);
     }
 
     // Also allow just 'q' when not in input mode
     if (event.name === 'q') {
-      process.exit(0);
+      cleanExit(0);
     }
 
     // Cycle views with Tab
@@ -102,20 +156,24 @@ export function App() {
     }
 
     // Number keys for direct view switching
+    // Order: Board[1], List[2], Story[3], Blocked[4], Retros[5], System[0]
     if (event.name === '1') {
       setCurrentView('board');
     }
     if (event.name === '2') {
-      setCurrentView('story');
+      setCurrentView('list');
     }
     if (event.name === '3') {
-      setCurrentView('list');
+      setCurrentView('story');
     }
     if (event.name === '4') {
       setCurrentView('blocked');
     }
     if (event.name === '5') {
       setCurrentView('retros');
+    }
+    if (event.name === '6') {
+      setCurrentView('charts');
     }
     if (event.name === '0') {
       setCurrentView('systeminfo');
@@ -181,6 +239,7 @@ export function App() {
                 setCurrentView('list');
               }}
               onSelectTask={(taskId) => setSelectedTaskId(taskId)}
+              onSelectStory={(storyId) => setSelectedStoryId(storyId)}
             />
           );
         }
@@ -234,6 +293,13 @@ export function App() {
               setSelectedStoryId(storyId);
               setCurrentView('story');
             }}
+            onEscape={() => setCurrentView('board')}
+          />
+        );
+
+      case 'charts':
+        return (
+          <ChartsView
             onEscape={() => setCurrentView('board')}
           />
         );
@@ -295,7 +361,7 @@ export function App() {
         flexDirection="row"
       >
         <text fg="gray">
-          TAB:switch view  1-5,0:jump to view  ESC:back  q:quit
+          TAB:switch view  1-6,0:jump to view  ESC:back  q:quit
         </text>
       </box>
     </box>

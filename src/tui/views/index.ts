@@ -46,3 +46,10 @@ export type { RetrospectivesViewProps } from './RetrospectivesView';
 
 export { SystemInfoView } from './SystemInfoView';
 export type { SystemInfoViewProps } from './SystemInfoView';
+
+// =============================================================================
+// Charts View
+// =============================================================================
+
+export { ChartsView } from './ChartsView';
+export type { ChartsViewProps } from './ChartsView';

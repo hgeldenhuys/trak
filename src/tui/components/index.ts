@@ -17,11 +17,21 @@ export { TaskCard } from './TaskCard';
 export type { TaskCardProps } from './TaskCard';
 
 // =============================================================================
+// Story Components
+// =============================================================================
+
+export { StoryCard } from './StoryCard';
+export type { StoryCardProps } from './StoryCard';
+
+// =============================================================================
 // Column Components
 // =============================================================================
 
 export { Column } from './Column';
 export type { ColumnProps } from './Column';
+
+export { StoryColumn } from './StoryColumn';
+export type { StoryColumnProps } from './StoryColumn';
 
 // =============================================================================
 // View Switcher Component
@@ -60,3 +70,10 @@ export type { InlineTextInputProps } from './InlineTextInput';
 
 export { SyncStatusIndicator, getSyncStatus } from './SyncStatusIndicator';
 export type { SyncStatusIndicatorProps, SyncStatus } from './SyncStatusIndicator';
+
+// =============================================================================
+// Work Chart Component
+// =============================================================================
+
+export { WorkChart } from './WorkChart';
+export type { WorkChartProps, DataPoint } from './WorkChart';

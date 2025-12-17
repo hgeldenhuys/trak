@@ -1,23 +1,8 @@
 #!/bin/sh
 
 # Wrapper script for board TUI
-# Executes the binary downloaded by postinstall
+# Runs via bun for reliability, with terminal reset on exit
 # Includes TMPDIR workaround for macOS OpenTUI native library
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-BINARY="$SCRIPT_DIR/.board-tui-binary"
-
-if [ ! -f "$BINARY" ]; then
-    echo "Error: board-tui binary not found at $BINARY"
-    echo ""
-    echo "The postinstall script may not have run correctly."
-    echo "Try reinstalling:"
-    echo "  npm install -g trak-board"
-    echo ""
-    echo "Or install manually:"
-    echo "  curl -fsSL https://raw.githubusercontent.com/hgeldenhuys/trak/main/install-binary.sh | bash"
-    exit 1
-fi
 
 # macOS requires TMPDIR workaround for OpenTUI native library
 case "$(uname -s)" in
@@ -26,4 +11,38 @@ case "$(uname -s)" in
         ;;
 esac
 
-exec "$BINARY" "$@"
+# Find the trak project directory
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+TRAK_DIR=""
+
+# Check common locations
+if [ -f "$HOME/WebstormProjects/trak/package.json" ]; then
+    TRAK_DIR="$HOME/WebstormProjects/trak"
+elif [ -f "$SCRIPT_DIR/../package.json" ]; then
+    TRAK_DIR="$SCRIPT_DIR/.."
+elif [ -f "./package.json" ] && grep -q '"name": "trak-board"' ./package.json 2>/dev/null; then
+    TRAK_DIR="."
+fi
+
+# Reset terminal on exit
+cleanup() {
+    # Reset terminal: show cursor, exit alt screen, reset modes
+    printf '\033[?25h\033[?1049l\033[?1000l\033[?1002l\033[?1003l\033[?1006l\033[?2004l\033[0m\033c'
+}
+trap cleanup EXIT INT TERM
+
+if [ -n "$TRAK_DIR" ]; then
+    cd "$TRAK_DIR" && exec bun run src/tui/index.tsx "$@"
+else
+    # Fallback to binary if available
+    BINARY="$SCRIPT_DIR/.board-tui-binary"
+    if [ -f "$BINARY" ]; then
+        exec "$BINARY" "$@"
+    else
+        echo "Error: trak project not found"
+        echo ""
+        echo "Run from the trak directory:"
+        echo "  cd /path/to/trak && TMPDIR=/tmp bun run tui"
+        exit 1
+    fi
+fi

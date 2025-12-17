@@ -18,6 +18,11 @@ import { TextAttributes, type KeyEvent } from '@opentui/core';
 import { getDbPath, getSchemaVersion, getDb, isDbInitialized } from '../../db';
 
 /**
+ * TUI Version - increment this when making changes to verify deployment
+ */
+const TUI_VERSION = '2.4.0';
+
+/**
  * Props for SystemInfoView component
  */
 export interface SystemInfoViewProps {
@@ -98,6 +103,7 @@ export function SystemInfoView({
 
   // Info items to display
   const infoItems = [
+    { label: 'TUI Version', value: TUI_VERSION, color: 'magenta' },
     { label: 'Project Name', value: projectName, color: 'cyan' },
     { label: 'Database Path', value: dbPath, color: 'white' },
     { label: 'Schema Version', value: String(schemaVersion), color: 'yellow' },

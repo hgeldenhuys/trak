@@ -48,21 +48,14 @@ export function useStories(options: UseStoriesOptions = {}): MultiTableQueryResu
 
   return useMultiTableQuery(
     () => {
-      const stories = storyRepository.findAll({
-        featureId: options.featureId,
-        status: options.status,
-      });
-
-      // Filter out archived stories if excludeArchived is true
-      if (excludeArchived) {
-        const filtered: Story[] = [];
-        for (const story of stories) {
-          if (story.status !== 'archived') {
-            filtered.push(story);
-          }
-        }
-        return filtered;
-      }
+      // Pass excludeArchived to the repository so archived stories are fetched from DB
+      const stories = storyRepository.findAll(
+        {
+          featureId: options.featureId,
+          status: options.status,
+        },
+        { excludeArchived }
+      );
 
       return stories;
     },

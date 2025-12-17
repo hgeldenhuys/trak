@@ -41,6 +41,8 @@ export interface StoryDetailViewProps {
   onBack?: () => void;
   /** Callback when a task is selected */
   onSelectTask?: (taskId: string) => void;
+  /** Callback when a new story should be viewed (for create/duplicate) */
+  onSelectStory?: (storyId: string) => void;
 }
 
 /**
@@ -127,6 +129,7 @@ export function StoryDetailView({
   storyId,
   onBack,
   onSelectTask,
+  onSelectStory,
 }: StoryDetailViewProps) {
   const { data: story, isLoading: storyLoading, refetch } = useStory(storyId);
   const { data: tasks, isLoading: tasksLoading } = useTasksByStory(storyId);
@@ -232,7 +235,45 @@ export function StoryDetailView({
     if (event.name === 'a') {
       setShowArd((prev) => !prev);
     }
-  }, []);
+
+    // Create new story with 'c' (uses same feature as current story)
+    if (event.name === 'c' && story) {
+      try {
+        const newStory = storyRepository.create({
+          featureId: story.featureId,
+          title: 'New Story',
+          description: '',
+          why: '',
+          status: StoryStatus.DRAFT,
+          priority: Priority.P2,
+        });
+        if (onSelectStory) {
+          onSelectStory(newStory.id);
+        }
+      } catch (err) {
+        // Failed to create story
+      }
+    }
+
+    // Duplicate current story with 'd'
+    if (event.name === 'd' && story) {
+      try {
+        const newStory = storyRepository.create({
+          featureId: story.featureId,
+          title: `${story.title} (copy)`,
+          description: story.description,
+          why: story.why,
+          status: StoryStatus.DRAFT,
+          priority: story.priority,
+        });
+        if (onSelectStory) {
+          onSelectStory(newStory.id);
+        }
+      } catch (err) {
+        // Failed to duplicate story
+      }
+    }
+  }, [story, onSelectStory]);
 
   // Use edit mode hook
   const [editState, editActions] = useEditMode({
@@ -430,7 +471,7 @@ export function StoryDetailView({
     ? activeTextFieldIndex !== null
       ? 'Enter: confirm  ESC: cancel edit'
       : 'j/k: navigate  Enter: edit field  ESC: save & exit'
-    : 'e: edit  s: spec  p: prd  a: ard  ESC: back  Enter: select task  j/k: scroll';
+    : 'e: edit  c: create  d: duplicate  s: spec  p: prd  a: ard  ESC: back  j/k: scroll';
 
   return (
     <box flexDirection="column" width="100%" height="100%">

@@ -1,11 +1,12 @@
 /**
- * KanbanBoard View - Main Kanban board for task management
+ * KanbanBoard View - Main Kanban board for story management
  *
- * Displays tasks organized in columns by status:
- * - To Do (pending)
+ * Displays stories organized in columns by status:
+ * - Draft (draft)
+ * - Planned (planned)
  * - In Progress (in_progress)
- * - Blocked (blocked)
- * - Done (completed)
+ * - Review (review)
+ * - Completed (completed)
  *
  * Supports keyboard navigation with hjkl/arrows and selection with Enter.
  *
@@ -20,18 +21,20 @@ import { useTasks, useStories } from '../hooks';
 import { useNavigation } from '../hooks/useNavigation';
 import { useKeyboard } from '@opentui/react';
 import { type KeyEvent } from '@opentui/core';
-import { Column } from '../components/Column';
-import { TaskStatus, type Task } from '../../types';
+import { StoryColumn } from '../components/StoryColumn';
+import { StoryStatus, type Story } from '../../types';
 
 /**
  * Column configuration for the Kanban board
- * Maps task status to display properties
+ * Maps story status to display properties
  * Note: Blocked tasks are shown in dedicated BlockedView (Tab 4)
  */
-const COLUMNS: { status: TaskStatus; title: string; color: string }[] = [
-  { status: TaskStatus.PENDING, title: 'To Do', color: 'gray' },
-  { status: TaskStatus.IN_PROGRESS, title: 'In Progress', color: 'yellow' },
-  { status: TaskStatus.COMPLETED, title: 'Done', color: 'green' },
+const COLUMNS: { status: StoryStatus; title: string; color: string }[] = [
+  { status: StoryStatus.DRAFT, title: 'Draft', color: 'gray' },
+  { status: StoryStatus.PLANNED, title: 'Planned', color: 'blue' },
+  { status: StoryStatus.IN_PROGRESS, title: 'In Progress', color: 'yellow' },
+  { status: StoryStatus.REVIEW, title: 'Review', color: 'magenta' },
+  { status: StoryStatus.COMPLETED, title: 'Completed', color: 'green' },
 ];
 
 /**
@@ -53,23 +56,23 @@ export interface KanbanBoardProps {
 /**
  * KanbanBoard view component
  *
- * Displays all tasks in a Kanban-style board with status columns.
- * Supports filtering by feature or story, and keyboard navigation.
+ * Displays all stories in a Kanban-style board with status columns.
+ * Supports filtering by feature, and keyboard navigation.
  *
  * @param props - Component props
  * @returns KanbanBoard JSX
  *
  * @example
  * ```tsx
- * // Show all tasks
+ * // Show all stories
  * <KanbanBoard
- *   onSelectTask={(taskId) => handleSelectTask(taskId)}
+ *   onSelectStory={(storyId) => handleSelectStory(storyId)}
  * />
  *
- * // Show tasks for a specific story
+ * // Show stories for a specific feature
  * <KanbanBoard
- *   storyId="story-123"
- *   onSelectTask={(taskId) => handleSelectTask(taskId)}
+ *   featureId="feature-123"
+ *   onSelectStory={(storyId) => handleSelectStory(storyId)}
  * />
  * ```
  */
@@ -82,10 +85,8 @@ export function KanbanBoard({
 }: KanbanBoardProps) {
   const [showArchived, setShowArchived] = useState(false);
 
-  // Fetch tasks with optional story filter
-  const { data: tasks, isLoading: tasksLoading } = useTasks(
-    storyId ? { storyId } : {}
-  );
+  // Fetch tasks for progress indicators
+  const { data: tasks, isLoading: tasksLoading } = useTasks({});
 
   // Fetch stories with optional feature filter (respecting showArchived)
   const { data: stories, isLoading: storiesLoading } = useStories(
@@ -94,30 +95,31 @@ export function KanbanBoard({
       : { excludeArchived: !showArchived }
   );
 
-  // Group tasks by status using for-loop (per project preference)
-  const tasksByStatus: Record<TaskStatus, Task[]> = {
-    [TaskStatus.PENDING]: [],
-    [TaskStatus.IN_PROGRESS]: [],
-    [TaskStatus.BLOCKED]: [],
-    [TaskStatus.COMPLETED]: [],
-    [TaskStatus.CANCELLED]: [],
+  // Group stories by status using for-loop (per project preference)
+  const storiesByStatus: Record<StoryStatus, Story[]> = {
+    [StoryStatus.DRAFT]: [],
+    [StoryStatus.PLANNED]: [],
+    [StoryStatus.IN_PROGRESS]: [],
+    [StoryStatus.REVIEW]: [],
+    [StoryStatus.COMPLETED]: [],
+    [StoryStatus.CANCELLED]: [],
+    [StoryStatus.ARCHIVED]: [],
   };
 
-  for (let i = 0; i < tasks.length; i++) {
-    const task = tasks[i];
-    if (tasksByStatus[task.status]) {
-      tasksByStatus[task.status].push(task);
+  for (const story of stories) {
+    if (storiesByStatus[story.status]) {
+      storiesByStatus[story.status].push(story);
     }
   }
 
   // Setup keyboard navigation
   const { state, isColumnFocused } = useNavigation({
     maxColumns: COLUMNS.length,
-    getRowCount: (col) => tasksByStatus[COLUMNS[col].status]?.length || 0,
+    getRowCount: (col) => storiesByStatus[COLUMNS[col].status]?.length || 0,
     onSelect: (col, row) => {
-      const task = tasksByStatus[COLUMNS[col].status]?.[row];
-      if (task && onSelectTask) {
-        onSelectTask(task.id);
+      const story = storiesByStatus[COLUMNS[col].status]?.[row];
+      if (story && onSelectStory) {
+        onSelectStory(story.id);
       }
     },
     onEscape,
@@ -151,15 +153,15 @@ export function KanbanBoard({
       {/* Kanban columns */}
       <box flexDirection="row" flexGrow={1} gap={1}>
         {COLUMNS.map((column, colIndex) => (
-          <Column
+          <StoryColumn
             key={column.status}
             title={column.title}
             color={column.color}
-            tasks={tasksByStatus[column.status] || []}
-            stories={stories}
+            stories={storiesByStatus[column.status] || []}
+            tasks={tasks}
             isFocused={isColumnFocused(colIndex)}
             focusedRow={state.focusedColumn === colIndex ? state.focusedRow : -1}
-            onSelectTask={onSelectTask}
+            onSelectStory={onSelectStory}
           />
         ))}
       </box>
@@ -167,7 +169,7 @@ export function KanbanBoard({
       {/* Footer help bar */}
       <box paddingLeft={1} marginTop={1}>
         <text fg="gray">
-          hjkl: navigate  Enter: select  a: toggle archived  ESC: back
+          hjkl: navigate  Enter: view story  a: toggle archived  ESC: back
         </text>
       </box>
     </box>

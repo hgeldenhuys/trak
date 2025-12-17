@@ -20,7 +20,7 @@ import { TaskStatus } from '../../types';
 /**
  * Available view types
  */
-export type ViewType = 'board' | 'story' | 'list' | 'blocked' | 'retros' | 'systeminfo';
+export type ViewType = 'board' | 'story' | 'list' | 'blocked' | 'retros' | 'charts' | 'systeminfo';
 
 /**
  * Props for ViewSwitcher component
@@ -43,13 +43,15 @@ interface ViewConfig {
 
 /**
  * Available views configuration
+ * Order: Board[1], List[2], Story[3], Blocked[4], Retros[5], Charts[6], System[0]
  */
 const VIEWS: ViewConfig[] = [
   { key: 'board', label: 'Board', shortcut: '1' },
-  { key: 'story', label: 'Story', shortcut: '2' },
-  { key: 'list', label: 'List', shortcut: '3' },
+  { key: 'list', label: 'List', shortcut: '2' },
+  { key: 'story', label: 'Story', shortcut: '3' },
   { key: 'blocked', label: 'Blocked', shortcut: '4' },
   { key: 'retros', label: 'Retros', shortcut: '5' },
+  { key: 'charts', label: 'Charts', shortcut: '6' },
   { key: 'systeminfo', label: 'System', shortcut: '0' },
 ];
 
