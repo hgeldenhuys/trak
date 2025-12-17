@@ -36,12 +36,19 @@ trap cleanup EXIT INT TERM
 
 if [ -n "$TRAK_DIR" ]; then
     # Run from package dir but keep user's cwd for database resolution
-    exec bun run "$TRAK_DIR/src/tui/index.tsx" "$@"
+    # Don't use exec - we need the trap to run after bun exits
+    bun run "$TRAK_DIR/src/tui/index.tsx" "$@"
+    EXIT_CODE=$?
+    cleanup
+    exit $EXIT_CODE
 else
     # Fallback to binary if available
     BINARY="$SCRIPT_DIR/.board-tui-binary"
     if [ -f "$BINARY" ]; then
-        exec "$BINARY" "$@"
+        "$BINARY" "$@"
+        EXIT_CODE=$?
+        cleanup
+        exit $EXIT_CODE
     else
         echo "Error: trak project not found"
         echo ""
