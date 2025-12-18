@@ -123,22 +123,32 @@ const transformFunctions: Record<string, (value: unknown) => unknown> = {
    * Strip HTML tags from description and decode entities
    *
    * Security: Decodes HTML entities in a single pass to avoid double-unescaping.
-   * Uses a map-based approach instead of sequential replacements.
+   * Uses iterative tag removal to handle malformed HTML safely.
    */
   stripHtml: (value: unknown): string => {
     if (!value || typeof value !== 'string') return '';
 
-    // Step 1: Convert block elements to newlines
+    // Step 1: Convert block elements to newlines (before stripping tags)
     let result = value
       .replace(/<br\s*\/?>/gi, '\n')
       .replace(/<\/p>/gi, '\n\n')
       .replace(/<\/div>/gi, '\n')
       .replace(/<\/li>/gi, '\n');
 
-    // Step 2: Remove all remaining HTML tags
-    result = result.replace(/<[^>]*>/g, '');
+    // Step 2: Remove HTML tags iteratively to handle malformed/nested tags
+    // Loop until no more tags are found (handles cases like <<script>script>)
+    let previousResult = '';
+    while (previousResult !== result) {
+      previousResult = result;
+      // Match complete tags including those with attributes containing special chars
+      result = result.replace(/<[^<>]*>/g, '');
+    }
 
-    // Step 3: Decode HTML entities in a single pass to prevent double-unescaping
+    // Step 3: Remove any remaining unclosed tags (e.g., "<script" without ">")
+    result = result.replace(/<[^>]*$/g, '');
+    result = result.replace(/^[^<]*>/g, '');
+
+    // Step 4: Decode HTML entities in a single pass to prevent double-unescaping
     // This handles entities like &amp;lt; correctly (becomes &lt;, not <)
     const entityMap: Record<string, string> = {
       '&nbsp;': ' ',
@@ -148,7 +158,7 @@ const transformFunctions: Record<string, (value: unknown) => unknown> = {
       '&#39;': "'",
       '&#x27;': "'",
       '&apos;': "'",
-      '&amp;': '&', // Must be last in sequential, but with single-pass it doesn't matter
+      '&amp;': '&',
     };
 
     result = result.replace(
