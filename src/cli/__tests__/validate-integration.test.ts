@@ -10,20 +10,24 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { unlinkSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
-// Test database path
+// Test database path - using fixed paths to avoid shell injection
 const TEST_DB_PATH = join(process.cwd(), '.test-validation.db');
-const BOARD_CMD = `bun ${join(process.cwd(), 'src/cli/index.ts')} --db-path ${TEST_DB_PATH}`;
+const BUN_PATH = 'bun';
+const CLI_SCRIPT = join(process.cwd(), 'src/cli/index.ts');
 
 /**
  * Execute a board command and return the output
+ * Uses execFileSync with args array to prevent shell injection
  */
 function board(args: string): string {
   try {
-    return execSync(`${BOARD_CMD} ${args}`, {
+    // Split args and use execFileSync to avoid shell injection
+    const argList = ['run', CLI_SCRIPT, '--db-path', TEST_DB_PATH, ...args.split(/\s+/).filter(Boolean)];
+    return execFileSync(BUN_PATH, argList, {
       encoding: 'utf-8',
       timeout: 10000,
     });
@@ -34,10 +38,12 @@ function board(args: string): string {
 
 /**
  * Execute a board command expecting it to fail
+ * Uses execFileSync with args array to prevent shell injection
  */
 function boardFail(args: string): { stdout: string; stderr: string; exitCode: number } {
   try {
-    const stdout = execSync(`${BOARD_CMD} ${args}`, {
+    const argList = ['run', CLI_SCRIPT, '--db-path', TEST_DB_PATH, ...args.split(/\s+/).filter(Boolean)];
+    const stdout = execFileSync(BUN_PATH, argList, {
       encoding: 'utf-8',
       timeout: 10000,
     });

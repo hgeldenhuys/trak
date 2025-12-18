@@ -120,24 +120,43 @@ const transformFunctions: Record<string, (value: unknown) => unknown> = {
   },
 
   /**
-   * Strip HTML tags from description
+   * Strip HTML tags from description and decode entities
+   *
+   * Security: Decodes HTML entities in a single pass to avoid double-unescaping.
+   * Uses a map-based approach instead of sequential replacements.
    */
   stripHtml: (value: unknown): string => {
     if (!value || typeof value !== 'string') return '';
-    // Remove HTML tags but preserve content
-    return value
+
+    // Step 1: Convert block elements to newlines
+    let result = value
       .replace(/<br\s*\/?>/gi, '\n')
       .replace(/<\/p>/gi, '\n\n')
       .replace(/<\/div>/gi, '\n')
-      .replace(/<\/li>/gi, '\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&amp;/g, '&')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .trim();
+      .replace(/<\/li>/gi, '\n');
+
+    // Step 2: Remove all remaining HTML tags
+    result = result.replace(/<[^>]*>/g, '');
+
+    // Step 3: Decode HTML entities in a single pass to prevent double-unescaping
+    // This handles entities like &amp;lt; correctly (becomes &lt;, not <)
+    const entityMap: Record<string, string> = {
+      '&nbsp;': ' ',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&#39;': "'",
+      '&#x27;': "'",
+      '&apos;': "'",
+      '&amp;': '&', // Must be last in sequential, but with single-pass it doesn't matter
+    };
+
+    result = result.replace(
+      /&(?:nbsp|lt|gt|quot|amp|apos|#39|#x27);/gi,
+      (match) => entityMap[match.toLowerCase()] || match
+    );
+
+    return result.trim();
   },
 
   /**
