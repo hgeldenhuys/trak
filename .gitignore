@@ -29,6 +29,9 @@ BOARD-CLI-SPEC.md
 node_modules/
 notify-service/node_modules
 
-# Old binaries (use dist/ instead)
+# Old binaries
 trak-demo
 trak-tui
+
+# Build output (built during npm publish and CI)
+dist/
