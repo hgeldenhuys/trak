@@ -149,9 +149,11 @@ export class APIServer {
   initializeOutboundSync(): void {
     const client = this.daemon.getAdoClient();
     const fieldMapper = this.daemon.getFieldMapper();
+    const config = this.daemon.getConfig();
+    const dbPath = config?.sync?.dbPath;
 
     if (client && fieldMapper) {
-      this.outboundSync = new OutboundSyncService(client, fieldMapper);
+      this.outboundSync = new OutboundSyncService(client, fieldMapper, dbPath);
       console.log('[API Server] Outbound sync service initialized');
     }
   }

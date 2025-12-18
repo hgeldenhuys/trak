@@ -560,6 +560,20 @@ export class OutboundSyncService {
       const adoFields = this.fieldMapper.trakToAdoFields(trakStory);
       console.log(`[${SERVICE_NAME}] Mapped fields for ADO work item:`, Object.keys(adoFields).join(', '));
 
+      // Log field values for debugging (truncated for readability)
+      if (adoFields['System.Description']) {
+        const desc = String(adoFields['System.Description']);
+        console.log(`[${SERVICE_NAME}]   System.Description: ${desc.length > 100 ? desc.slice(0, 100) + '...' : desc}`);
+      } else {
+        console.log(`[${SERVICE_NAME}]   System.Description: (empty)`);
+      }
+      if (adoFields['Microsoft.VSTS.Common.AcceptanceCriteria']) {
+        const ac = String(adoFields['Microsoft.VSTS.Common.AcceptanceCriteria']);
+        console.log(`[${SERVICE_NAME}]   AcceptanceCriteria: ${ac.length > 100 ? ac.slice(0, 100) + '...' : ac}`);
+      } else {
+        console.log(`[${SERVICE_NAME}]   AcceptanceCriteria: (empty)`);
+      }
+
       // Create work item in ADO
       let createdWorkItem;
       try {

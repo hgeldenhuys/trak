@@ -258,7 +258,15 @@ export class Daemon {
 
       // Step 8: Start sync service
       console.log(`[${DAEMON_NAME}] Starting sync service with ${this.config.sync.pollInterval}ms interval...`);
-      this.syncService = new SyncService(this.adoClient, this.fieldMapper, this.config.sync);
+      if (this.config.sync.dbPath) {
+        console.log(`[${DAEMON_NAME}] Using database path: ${this.config.sync.dbPath}`);
+      }
+      this.syncService = new SyncService(
+        this.adoClient,
+        this.fieldMapper,
+        this.config.sync,
+        this.config.sync.dbPath
+      );
       this.syncService.startPolling();
 
       this.isRunning = true;

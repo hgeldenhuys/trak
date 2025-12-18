@@ -204,6 +204,8 @@ export interface SyncConfig {
   conflictResolution: 'last-write-wins' | 'ado-wins' | 'trak-wins';
   /** Only sync items modified after this date (ISO string) */
   syncSince?: string;
+  /** Path to trak's SQLite database (default: ~/.board/data.db) */
+  dbPath?: string;
 }
 
 /**
@@ -427,6 +429,10 @@ export interface CLIArgs {
   pollInterval?: number;
   /** Path to mapping config file */
   mappingConfig?: string;
+  /** Path to trak's SQLite database */
+  dbPath?: string;
+  /** ADO process template for state mapping */
+  processTemplate?: 'agile' | 'scrum' | 'basic';
   /** Enable verbose logging */
   verbose?: boolean;
   /** Show help */

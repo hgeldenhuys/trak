@@ -90,10 +90,10 @@ export const DEFAULT_STATE_MAPPING: StateMapping = {
     // Scrum process states
     'Approved': 'planned',
     'Committed': 'in_progress',
+    'Done': 'completed',
     // Basic process states
     'To Do': 'draft',
     'Doing': 'in_progress',
-    'Done': 'completed',
   },
   outbound: {
     'draft': 'New',
@@ -102,6 +102,48 @@ export const DEFAULT_STATE_MAPPING: StateMapping = {
     'review': 'Resolved',
     'completed': 'Closed',
     'cancelled': 'Removed',
+  },
+};
+
+/**
+ * Scrum-specific state mapping for outbound sync
+ * Use with --process-template scrum
+ */
+export const SCRUM_STATE_MAPPING: StateMapping = {
+  inbound: {
+    'New': 'draft',
+    'Approved': 'planned',
+    'Committed': 'in_progress',
+    'Done': 'completed',
+    'Removed': 'cancelled',
+  },
+  outbound: {
+    'draft': 'New',
+    'planned': 'Approved',
+    'in_progress': 'Committed',  // Scrum uses Committed, not Active
+    'review': 'Committed',       // Scrum doesn't have review state, keep in Committed
+    'completed': 'Done',         // Scrum uses Done, not Closed
+    'cancelled': 'Removed',
+  },
+};
+
+/**
+ * Basic process template state mapping
+ * Use with --process-template basic
+ */
+export const BASIC_STATE_MAPPING: StateMapping = {
+  inbound: {
+    'To Do': 'draft',
+    'Doing': 'in_progress',
+    'Done': 'completed',
+  },
+  outbound: {
+    'draft': 'To Do',
+    'planned': 'To Do',
+    'in_progress': 'Doing',
+    'review': 'Doing',
+    'completed': 'Done',
+    'cancelled': 'Done',  // Basic doesn't have Removed
   },
 };
 
@@ -208,10 +250,27 @@ export function createDefaultSyncConfig(): SyncConfig {
 
 /**
  * Create default field mapping configuration
+ *
+ * @param processTemplate - ADO process template to use for state mapping (default: agile)
  */
-export function createDefaultMappingConfig(): FieldMappingConfig {
+export function createDefaultMappingConfig(
+  processTemplate?: 'agile' | 'scrum' | 'basic'
+): FieldMappingConfig {
+  // Select state mapping based on process template
+  let stateMapping: StateMapping;
+  switch (processTemplate) {
+    case 'scrum':
+      stateMapping = SCRUM_STATE_MAPPING;
+      break;
+    case 'basic':
+      stateMapping = BASIC_STATE_MAPPING;
+      break;
+    default:
+      stateMapping = DEFAULT_STATE_MAPPING;
+  }
+
   return {
-    states: DEFAULT_STATE_MAPPING,
+    states: stateMapping,
     priorities: DEFAULT_PRIORITY_MAPPING,
     fields: DEFAULT_FIELD_MAPPINGS,
     workItemTypes: DEFAULT_WORK_ITEM_TYPES,
@@ -266,6 +325,20 @@ export function parseCLIArgs(args: string[]): CLIArgs {
         result.mappingConfig = nextArg;
         i++;
         break;
+      case '--db-path':
+      case '-d':
+        result.dbPath = nextArg;
+        i++;
+        break;
+      case '--process-template':
+      case '-t':
+        if (nextArg === 'agile' || nextArg === 'scrum' || nextArg === 'basic') {
+          result.processTemplate = nextArg;
+        } else {
+          console.warn(`[Config] Invalid process template "${nextArg}", using default (agile)`);
+        }
+        i++;
+        break;
       case '--verbose':
       case '-v':
         result.verbose = true;
@@ -292,8 +365,18 @@ export function getEnvConfig(): Partial<{
   board: string;
   port: number;
   pollInterval: number;
+  dbPath: string;
+  processTemplate: 'agile' | 'scrum' | 'basic';
 }> {
   const env = process.env;
+
+  // Parse process template from env
+  let processTemplate: 'agile' | 'scrum' | 'basic' | undefined;
+  const templateEnv = env.ADO_PROCESS_TEMPLATE || env.AZURE_DEVOPS_PROCESS_TEMPLATE;
+  if (templateEnv === 'agile' || templateEnv === 'scrum' || templateEnv === 'basic') {
+    processTemplate = templateEnv;
+  }
+
   return {
     org: env.ADO_ORG || env.AZURE_DEVOPS_ORG,
     project: env.ADO_PROJECT || env.AZURE_DEVOPS_PROJECT,
@@ -302,6 +385,8 @@ export function getEnvConfig(): Partial<{
     pollInterval: env.ADO_POLL_INTERVAL
       ? parseInt(env.ADO_POLL_INTERVAL, 10) * 1000
       : undefined,
+    dbPath: env.BOARD_DB_PATH,
+    processTemplate,
   };
 }
 
@@ -349,6 +434,12 @@ export function buildConfig(cliArgs: CLIArgs): AdapterConfig {
     sync.pollInterval = envConfig.pollInterval;
   }
 
+  // Set database path from CLI or env
+  const dbPath = cliArgs.dbPath || envConfig.dbPath;
+  if (dbPath) {
+    sync.dbPath = dbPath;
+  }
+
   const server = createDefaultServerConfig();
   if (cliArgs.port) {
     server.port = cliArgs.port;
@@ -356,7 +447,9 @@ export function buildConfig(cliArgs: CLIArgs): AdapterConfig {
     server.port = envConfig.port;
   }
 
-  const mapping = createDefaultMappingConfig();
+  // Determine process template from CLI or env (default: agile)
+  const processTemplate = cliArgs.processTemplate || envConfig.processTemplate;
+  const mapping = createDefaultMappingConfig(processTemplate);
 
   return {
     connection,
@@ -414,27 +507,42 @@ USAGE:
   echo $PAT | trak-ado --pat-stdin --org <org> --project <project>
 
 OPTIONS:
-  --pat-stdin           Read PAT from stdin (required for security)
-  -o, --org <org>       Azure DevOps organization name
-  -p, --project <name>  Azure DevOps project name
-  -b, --board <name>    Board name (defaults to project name)
-  --port <port>         REST API port (default: ${DEFAULT_PORT})
-  --poll-interval <sec> Polling interval in seconds (default: ${DEFAULT_POLL_INTERVAL / 1000})
-  -m, --mapping-config  Path to custom field mapping YAML file
-  -v, --verbose         Enable verbose logging
-  -h, --help            Show this help message
-  --version             Show version
+  --pat-stdin             Read PAT from stdin (required for security)
+  -o, --org <org>         Azure DevOps organization name
+  -p, --project <name>    Azure DevOps project name
+  -b, --board <name>      Board name (defaults to project name)
+  --port <port>           REST API port (default: ${DEFAULT_PORT})
+  --poll-interval <sec>   Polling interval in seconds (default: ${DEFAULT_POLL_INTERVAL / 1000})
+  -m, --mapping-config    Path to custom field mapping YAML file
+  -d, --db-path <path>    Path to trak SQLite database (default: ~/.board/data.db)
+  -t, --process-template  ADO process template: agile, scrum, basic (default: agile)
+  -v, --verbose           Enable verbose logging
+  -h, --help              Show this help message
+  --version               Show version
 
 ENVIRONMENT VARIABLES:
-  ADO_ORG              Azure DevOps organization
-  ADO_PROJECT          Azure DevOps project
-  ADO_BOARD            Board name
-  ADO_PORT             REST API port
-  ADO_POLL_INTERVAL    Polling interval in seconds
+  ADO_ORG                 Azure DevOps organization
+  ADO_PROJECT             Azure DevOps project
+  ADO_BOARD               Board name
+  ADO_PORT                REST API port
+  ADO_POLL_INTERVAL       Polling interval in seconds
+  ADO_PROCESS_TEMPLATE    Process template (agile, scrum, basic)
+  BOARD_DB_PATH           Path to trak SQLite database
+
+PROCESS TEMPLATES:
+  agile   Agile process - uses New/Active/Resolved/Closed states (default)
+  scrum   Scrum process - uses New/Approved/Committed/Done states
+  basic   Basic process - uses To Do/Doing/Done states
 
 EXAMPLES:
   # Start daemon with PAT from environment variable
   echo $ADO_PAT | trak-ado --pat-stdin --org ively --project ively.core
+
+  # Start with Scrum process template
+  echo $ADO_PAT | trak-ado --pat-stdin --org ively --project Trak --process-template scrum
+
+  # Start with custom database path
+  echo $ADO_PAT | trak-ado --pat-stdin --org ively --project Trak --db-path ./.board.db
 
   # Start with custom port and polling interval
   echo $ADO_PAT | trak-ado --pat-stdin --org ively --project ively.core --port 9280 --poll-interval 60
@@ -445,6 +553,7 @@ EXAMPLES:
 REST API ENDPOINTS:
   GET  /health                      Daemon health status
   GET  /status                      Sync status and statistics
+  POST /ado/work-item               Create ADO work item from trak story
   POST /ado/work-item/:id/state     Update ADO work item state
   POST /ado/work-item/:id/sync      Force sync single work item
   POST /sync                        Trigger full sync
