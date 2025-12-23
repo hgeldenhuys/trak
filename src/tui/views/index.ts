@@ -60,3 +60,10 @@ export type { ChartsViewProps } from './ChartsView';
 
 export { AgentsView } from './AgentsView';
 export type { AgentsViewProps } from './AgentsView';
+
+// =============================================================================
+// Architecture Docs View
+// =============================================================================
+
+export { ArchitectureDocsView } from './ArchitectureDocsView';
+export type { ArchitectureDocsViewProps } from './ArchitectureDocsView';
