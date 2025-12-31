@@ -922,3 +922,136 @@ taskCommand
       process.exit(1);
     }
   });
+
+/**
+ * Ready subcommand
+ *
+ * Lists tasks that are ready to work on - tasks with no blocking dependencies.
+ * A task is "ready" when:
+ * 1. Status is 'pending' or 'in_progress', AND
+ * 2. Dependencies array is empty OR all dependency tasks have status 'completed'
+ *
+ * Inspired by Beads (steveyegge/beads) `bd ready` command.
+ */
+taskCommand
+  .command('ready')
+  .description('List tasks with no blocking dependencies (ready to work on)')
+  .option('-s, --story <code>', 'Filter by story code (e.g., NOTIFY-001)')
+  .action(async (options) => {
+    verbose('Finding ready tasks');
+
+    try {
+      // Build filters for pending/in_progress tasks
+      let storyId: string | undefined;
+      let storyMap: Map<string, Story> = new Map();
+
+      // If filtering by story code, look it up
+      if (options.story) {
+        const story = storyRepository.findByCode(options.story);
+        if (!story) {
+          error(`Story not found: ${options.story}`);
+          process.exit(1);
+        }
+        storyId = story.id;
+        storyMap.set(story.id, story);
+        verbose(`Filtering by story: ${story.id}`);
+      }
+
+      // Get all tasks (we need to check dependencies across stories)
+      const allTasks = taskRepository.findAll({ storyId });
+
+      // Build a map of task ID -> status for dependency checking
+      const taskStatusMap = new Map<string, TaskStatus>();
+      for (const task of allTasks) {
+        taskStatusMap.set(task.id, task.status);
+      }
+
+      // If not filtering by story, we need all tasks for dependency resolution
+      if (!storyId) {
+        const globalTasks = taskRepository.findAll();
+        for (const task of globalTasks) {
+          taskStatusMap.set(task.id, task.status);
+        }
+      }
+
+      // Filter to ready tasks
+      const readyTasks: Task[] = [];
+      for (const task of allTasks) {
+        // Only consider pending or in_progress tasks
+        if (task.status !== TaskStatus.PENDING && task.status !== TaskStatus.IN_PROGRESS) {
+          continue;
+        }
+
+        // Check if all dependencies are completed
+        const isReady = task.dependencies.length === 0 ||
+          task.dependencies.every(depId => {
+            const depStatus = taskStatusMap.get(depId);
+            return depStatus === TaskStatus.COMPLETED;
+          });
+
+        if (isReady) {
+          readyTasks.push(task);
+        }
+      }
+
+      // Build story map for display
+      const missingStoryIds = new Set<string>();
+      for (const task of readyTasks) {
+        if (!storyMap.has(task.storyId)) {
+          missingStoryIds.add(task.storyId);
+        }
+      }
+
+      for (const sid of missingStoryIds) {
+        const story = storyRepository.findById(sid);
+        if (story) {
+          storyMap.set(sid, story);
+        }
+      }
+
+      if (getOutputFormat() === 'json') {
+        output(readyTasks);
+      } else {
+        if (readyTasks.length === 0) {
+          output('No ready tasks found (all tasks have blocking dependencies or are completed)');
+          return;
+        }
+
+        info(`Found ${readyTasks.length} ready task(s):\n`);
+
+        const formatted: Record<string, unknown>[] = [];
+        for (const task of readyTasks) {
+          const story = storyMap.get(task.storyId);
+          formatted.push({
+            id: task.id.slice(0, 8),
+            title: task.title,
+            status: formatStatus(task.status),
+            priority: formatPriority(task.priority),
+            assignedTo: task.assignedTo || '-',
+            storyCode: story?.code || task.storyId.slice(0, 8),
+            deps: `${task.dependencies.length} dep(s)`,
+          });
+        }
+
+        output(
+          formatted,
+          ['id', 'title', 'status', 'priority', 'assignedTo', 'storyCode', 'deps'],
+          {
+            headers: {
+              id: 'ID',
+              title: 'TITLE',
+              status: 'STATUS',
+              priority: 'PRIORITY',
+              assignedTo: 'ASSIGNED TO',
+              storyCode: 'STORY',
+              deps: 'DEPS',
+            },
+          }
+        );
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      error(`Failed to find ready tasks: ${message}`);
+      process.exit(1);
+    }
+  });
