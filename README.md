@@ -777,7 +777,7 @@ For creating custom adapters, see [adapters/README.md](adapters/README.md).
 
 ### [Unreleased]
 
-### [0.6.0] - 2026-01-06
+### [0.7.0] - 2026-01-06
 
 #### Added
 - **Activity Log Panel** - Real-time monitoring of external agents and adapters
