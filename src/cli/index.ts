@@ -33,6 +33,7 @@ import { createLearningCommand } from './commands/learning';
 import { createWeaveCommand } from './commands/weave';
 import { createValidateCommand } from './commands/validate';
 import { createInfoCommand } from './commands/info';
+import { createLogCommand } from './commands/log';
 
 /**
  * Get the default database path
@@ -56,7 +57,7 @@ function createProgram(): Command {
   program
     .name('board')
     .description('Board CLI for story and task management')
-    .version('0.4.0')
+    .version('0.6.0')
     .option('--db-path <path>', `Path to SQLite database (env: BOARD_DB_PATH)`, defaultDbPath)
     .option('--actor <name>', 'Actor name for history tracking (env: BOARD_ACTOR)', process.env.BOARD_ACTOR || 'cli')
     .option('--json', 'Output as JSON', false)
@@ -178,6 +179,9 @@ function createProgram(): Command {
 
   // Info command to show configuration and database path
   program.addCommand(createInfoCommand());
+
+  // Log command for activity log management
+  program.addCommand(createLogCommand());
 
   return program;
 }

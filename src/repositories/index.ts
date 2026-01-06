@@ -126,6 +126,12 @@ export { AgentLearningRepository, agentLearningRepository } from './agent-learni
 export { WeaveEntryRepository, weaveEntryRepository, VALID_DIMENSIONS } from './weave-entry-repository';
 
 // =============================================================================
+// Activity Log Repository
+// =============================================================================
+
+export { ActivityLogRepository, activityLogRepository } from './activity-log-repository';
+
+// =============================================================================
 // Unified Repositories Object
 // =============================================================================
 
@@ -144,6 +150,7 @@ import { decisionRepository } from './decision-repository';
 import { agentDefinitionRepository } from './agent-definition-repository';
 import { agentLearningRepository } from './agent-learning-repository';
 import { weaveEntryRepository } from './weave-entry-repository';
+import { activityLogRepository } from './activity-log-repository';
 
 /**
  * Unified repositories object containing all singleton instances
@@ -194,6 +201,8 @@ export const repositories = {
   agentLearnings: agentLearningRepository,
   /** Weave entry repository instance */
   weaveEntries: weaveEntryRepository,
+  /** Activity log repository instance */
+  activityLogs: activityLogRepository,
 } as const;
 
 /**

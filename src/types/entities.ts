@@ -614,3 +614,39 @@ export type UpdateWeaveEntryInput = Partial<Pick<WeaveEntry, 'concept' | 'descri
  * Type for creating a new WeaveReference
  */
 export type CreateWeaveReferenceInput = Pick<WeaveReference, 'fromEntryId' | 'toEntryId' | 'relationType'>;
+
+/**
+ * Activity log level enum
+ */
+export type ActivityLogLevel = 'info' | 'warn' | 'error';
+
+/**
+ * ActivityLog entity - real-time activity logging for agent monitoring
+ *
+ * Activity logs capture events from external agents, adapters, and integrations.
+ * Used for real-time monitoring in the TUI activity panel.
+ */
+export interface ActivityLog {
+  /** UUID for unique identification */
+  id: string;
+  /** Source of the log entry (e.g., 'my-hook', 'adapter-xyz') */
+  source: string;
+  /** Log level: info, warn, or error */
+  level: ActivityLogLevel;
+  /** Log message content */
+  message: string;
+  /** ISO timestamp of when the event occurred */
+  timestamp: string;
+  /** Optional story ID to associate with this log entry */
+  storyId: string | null;
+  /** Optional JSON metadata for additional context */
+  metadata: Record<string, unknown>;
+  /** ISO timestamp of when the log was created in the database */
+  createdAt: string;
+}
+
+/**
+ * Type for creating a new ActivityLog
+ */
+export type CreateActivityLogInput = Pick<ActivityLog, 'source' | 'message'> &
+  Partial<Pick<ActivityLog, 'level' | 'storyId' | 'metadata'>>;

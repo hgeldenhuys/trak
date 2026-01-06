@@ -77,3 +77,10 @@ export type { SyncStatusIndicatorProps, SyncStatus } from './SyncStatusIndicator
 
 export { WorkChart } from './WorkChart';
 export type { WorkChartProps, DataPoint } from './WorkChart';
+
+// =============================================================================
+// Activity Log Panel Component
+// =============================================================================
+
+export { ActivityLogPanel } from './ActivityLogPanel';
+export type { ActivityLogPanelProps } from './ActivityLogPanel';

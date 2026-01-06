@@ -18,6 +18,7 @@ import * as migration005 from './migrations/005_task_files';
 import * as migration006 from './migrations/006_task_effort';
 import * as migration007 from './migrations/007_agent_definitions';
 import * as migration008 from './migrations/008_weave';
+import * as migration010 from './migrations/010_activity_logs';
 
 /**
  * Local database filename (project-centric)
@@ -143,7 +144,7 @@ export interface InitDbOptions {
 /**
  * All migrations in order
  */
-const MIGRATIONS = [migration001, migration002, migration003, migration004, migration005, migration006, migration007, migration008];
+const MIGRATIONS = [migration001, migration002, migration003, migration004, migration005, migration006, migration007, migration008, migration010];
 
 /**
  * Run all pending migrations
@@ -286,6 +287,7 @@ export function resetDb(): void {
 
   // Drop all tables in reverse order
   const dropOrder = [
+    TABLES.ACTIVITY_LOGS,
     TABLES.WEAVE_REFERENCES,
     TABLES.WEAVE_ENTRIES,
     TABLES.AGENT_LEARNINGS,

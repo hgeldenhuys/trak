@@ -26,7 +26,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { TextAttributes } from '@opentui/core';
 import type { KeyEvent } from '@opentui/core';
 import { useStory, useTasksByStory, useEditMode } from '../hooks';
-import { InlineTextInput, StatusSelector, PrioritySelector } from '../components';
+import { InlineTextInput, StatusSelector, PrioritySelector, ActivityLogPanel } from '../components';
 import { acceptanceCriteriaRepository, storyRepository, noteRepository } from '../../repositories';
 import type { AcceptanceCriteria, Story, UpdateStoryInput, Note } from '../../types';
 import { StoryStatus, Priority, EntityType } from '../../types';
@@ -146,6 +146,8 @@ export function StoryDetailView({
   const [showPrd, setShowPrd] = useState(false);
   // ARD visibility toggle (keyboard shortcut 'a')
   const [showArd, setShowArd] = useState(false);
+  // Activity log visibility toggle (keyboard shortcut 'l')
+  const [showActivityLog, setShowActivityLog] = useState(true);
 
   // Fetch spec note for this story
   const [specNote, setSpecNote] = useState<Note | null>(null);
@@ -234,6 +236,9 @@ export function StoryDetailView({
     }
     if (event.name === 'a') {
       setShowArd((prev) => !prev);
+    }
+    if (event.name === 'l') {
+      setShowActivityLog((prev) => !prev);
     }
 
     // Create new story with 'c' (uses same feature as current story)
@@ -471,7 +476,7 @@ export function StoryDetailView({
     ? activeTextFieldIndex !== null
       ? 'Enter: confirm  ESC: cancel edit'
       : 'j/k: navigate  Enter: edit field  ESC: save & exit'
-    : 'e: edit  c: create  d: duplicate  s: spec  p: prd  a: ard  ESC: back  j/k: scroll';
+    : 'e: edit  c: create  d: duplicate  s: spec  p: prd  a: ard  l: activity log  ESC: back  j/k: scroll';
 
   return (
     <box flexDirection="column" width="100%" height="100%">
@@ -688,6 +693,11 @@ export function StoryDetailView({
           <box height={3}><text> </text></box>
         </box>
       </scrollbox>
+
+      {/* Activity Log Panel - toggleable with 'l' key */}
+      {showActivityLog && (
+        <ActivityLogPanel storyId={storyId} height={5} />
+      )}
 
       {/* Footer with help - fixed at bottom */}
       <box border={['top']} paddingLeft={1}>

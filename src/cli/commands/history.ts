@@ -45,7 +45,6 @@ function resolveEntity(ref: string): { type: EntityType; id: string; code: strin
 
 export function createHistoryCommand(): Command {
   const cmd = new Command('history')
-    .alias('log')
     .description('View change history and audit log');
 
   /**

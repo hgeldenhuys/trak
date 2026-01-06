@@ -40,6 +40,8 @@ export type {
   WeaveDimension,
   WeaveEntry,
   WeaveReference,
+  ActivityLog,
+  ActivityLogLevel,
 } from './entities';
 
 // Re-export all input types for create operations
@@ -60,6 +62,7 @@ export type {
   CreateAgentLearningInput,
   CreateWeaveEntryInput,
   CreateWeaveReferenceInput,
+  CreateActivityLogInput,
 } from './entities';
 
 // Re-export all input types for update operations

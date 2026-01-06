@@ -547,6 +547,41 @@ board history today
 
 **Actions:** `created`, `updated`, `deleted`, `status_changed`, `verified`
 
+### Activity Logs
+
+Monitor external agents, hooks, and adapters with real-time activity logging.
+
+```bash
+# Log an activity (from external process or adapter)
+board log add -s "ado-adapter" -l info -m "Sync completed: 5 items"
+board log add -s "ci-bot" -l warn -m "Build slow: 45s" --story AUTH-001
+board log add -s "webhook" -l error -m "Connection timeout"
+
+# List recent logs
+board log list                      # Last 20 logs
+board log list -n 50                # Last 50 logs
+board log list -S AUTH-001          # For specific story
+board log list -s ado-adapter       # By source
+board log list --json               # JSON output
+
+# Show log details
+board log show <log-id>
+
+# Get log count
+board log count
+
+# Clean up old logs
+board log clear --older-than 7d     # Older than 7 days
+board log clear --older-than 24h    # Older than 24 hours
+board log clear --all --confirm     # Clear all logs
+```
+
+**Log Levels:** `info`, `warn`, `error`
+
+**TUI Integration:** The Story Detail View shows a 5-line activity log panel at the bottom. Press `l` to toggle visibility.
+
+**Use Case:** Monitor remote agents to detect if they're working or if a process has died. See `samples/activity-log-demo/` for adapter examples.
+
 ### Task Files & References
 
 Track which files were modified as part of a task.
@@ -590,6 +625,7 @@ board-tui --db-path /path/to/db     # Custom database
 | `3` | List view (all stories) |
 | `h/j/k/l` or arrows | Navigate |
 | `Enter` | Select item |
+| `l` | Toggle activity log panel (Story View) |
 | `?` | Help overlay |
 | `q` | Quit |
 
@@ -625,6 +661,7 @@ The board uses SQLite with WAL mode for concurrent access.
 | `relations` | Entity relationships |
 | `qeom_metadata` | QEOM annotations |
 | `decisions` | Architectural decisions with rationale |
+| `activity_logs` | External agent/adapter activity logs |
 
 ### Migrations
 
@@ -739,6 +776,19 @@ For creating custom adapters, see [adapters/README.md](adapters/README.md).
 ## Changelog
 
 ### [Unreleased]
+
+### [0.6.0] - 2026-01-06
+
+#### Added
+- **Activity Log Panel** - Real-time monitoring of external agents and adapters
+  - `board log add` - Log activity from external processes (hooks, adapters, CI)
+  - `board log list` - View recent logs with filtering by source/story
+  - `board log clear` - Clean up old logs with duration-based retention
+  - `board log show` - View log details
+  - `board log count` - Get total log count
+  - TUI integration: 5-line panel in Story Detail View (press `l` to toggle)
+  - Sample adapters in `samples/activity-log-demo/` demonstrating integration
+- **Architecture Docs View** - Press `8` in TUI for architecture decision records
 
 ### [0.5.0] - 2025-12-14
 

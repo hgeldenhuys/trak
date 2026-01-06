@@ -8,9 +8,9 @@
 
 /**
  * Current schema version for migration tracking
- * Must match the highest migration number (e.g., 008_weave.ts = 8)
+ * Must match the highest migration number (e.g., 010_activity_logs.ts = 10)
  */
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 10;
 
 /**
  * Table names as constants
@@ -34,6 +34,7 @@ export const TABLES = {
   AGENT_LEARNINGS: 'agent_learnings',
   WEAVE_ENTRIES: 'weave_entries',
   WEAVE_REFERENCES: 'weave_references',
+  ACTIVITY_LOGS: 'activity_logs',
 } as const;
 
 /**
@@ -537,6 +538,34 @@ export const CREATE_WEAVE_REFERENCES_INDEXES = `
 `;
 
 /**
+ * SQL for creating the activity_logs table
+ *
+ * Activity logs capture real-time events from external agents, adapters, and integrations.
+ * Used for monitoring agent activity in the TUI.
+ */
+export const CREATE_ACTIVITY_LOGS_TABLE = `
+  CREATE TABLE IF NOT EXISTS ${TABLES.ACTIVITY_LOGS} (
+    id TEXT PRIMARY KEY,
+    source TEXT NOT NULL,
+    level TEXT NOT NULL DEFAULT 'info',
+    message TEXT NOT NULL,
+    timestamp TEXT NOT NULL,
+    story_id TEXT,
+    metadata TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+`;
+
+/**
+ * SQL for creating indexes on activity_logs table
+ */
+export const CREATE_ACTIVITY_LOGS_INDEXES = `
+  CREATE INDEX IF NOT EXISTS idx_activity_logs_timestamp ON ${TABLES.ACTIVITY_LOGS}(timestamp);
+  CREATE INDEX IF NOT EXISTS idx_activity_logs_source ON ${TABLES.ACTIVITY_LOGS}(source);
+  CREATE INDEX IF NOT EXISTS idx_activity_logs_story_id ON ${TABLES.ACTIVITY_LOGS}(story_id);
+`;
+
+/**
  * All table creation SQL statements in order
  */
 export const ALL_TABLE_CREATES = [
@@ -558,6 +587,7 @@ export const ALL_TABLE_CREATES = [
   CREATE_AGENT_LEARNINGS_TABLE,
   CREATE_WEAVE_ENTRIES_TABLE,
   CREATE_WEAVE_REFERENCES_TABLE,
+  CREATE_ACTIVITY_LOGS_TABLE,
 ];
 
 /**
@@ -581,6 +611,7 @@ export const ALL_INDEX_CREATES = [
   CREATE_AGENT_LEARNINGS_INDEXES,
   CREATE_WEAVE_ENTRIES_INDEXES,
   CREATE_WEAVE_REFERENCES_INDEXES,
+  CREATE_ACTIVITY_LOGS_INDEXES,
 ];
 
 /**
@@ -803,6 +834,16 @@ export const COLUMN_MAPPINGS = {
     fromEntryId: 'from_entry_id',
     toEntryId: 'to_entry_id',
     relationType: 'relation_type',
+    createdAt: 'created_at',
+  },
+  activityLogs: {
+    id: 'id',
+    source: 'source',
+    level: 'level',
+    message: 'message',
+    timestamp: 'timestamp',
+    storyId: 'story_id',
+    metadata: 'metadata',
     createdAt: 'created_at',
   },
 } as const;
