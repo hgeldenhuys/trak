@@ -189,7 +189,7 @@ describe('Auth Integration Tests', () => {
 
     test('request with invalid token fails validation', async () => {
       const request = createMockRequest('POST', '/events', {
-        authToken: 'Bearer nsk_invalidtoken12345678901234567',
+        authToken: 'Bearer trak_invalidtoken12345678901234567',
         body: createTestEventPayload('proj-invalid', 'sess-invalid'),
       });
 
@@ -270,7 +270,7 @@ describe('Auth Integration Tests', () => {
     test('requireAuth rejects request with invalid token', async () => {
       const protectedHandler = requireAuth(successHandler);
       const request = createMockRequest('GET', '/debug', {
-        authToken: 'Bearer nsk_invalidtoken12345678901234567',
+        authToken: 'Bearer trak_invalidtoken12345678901234567',
       });
 
       const response = await protectedHandler(request);
@@ -478,7 +478,7 @@ describe('Auth Module Unit Tests', () => {
     test('generated key has correct format', () => {
       const { plainKey, hash } = generateSdkKey();
 
-      expect(plainKey).toMatch(/^nsk_[a-z0-9]{32}$/);
+      expect(plainKey).toMatch(/^trak_[a-z0-9]{32}$/);
       expect(hash).toMatch(/^[a-f0-9]{64}$/); // SHA-256 hex
     });
 

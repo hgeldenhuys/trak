@@ -22,6 +22,9 @@ describe('board log', () => {
     } catch {
       // Ignore
     }
+    // Initialize database to run migrations before tests
+    // This prevents "Applied X migrations" output from breaking JSON parsing
+    await $`bun run ${CLI_PATH} --db-path ${TEST_DB_PATH} log count`.quiet();
   });
 
   afterAll(async () => {

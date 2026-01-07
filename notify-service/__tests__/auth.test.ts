@@ -70,7 +70,7 @@ describe('Auth Middleware', () => {
     test('returns error for invalid Bearer format - missing prefix', async () => {
       const request = new Request('http://localhost/api/test', {
         method: 'GET',
-        headers: { Authorization: 'nsk_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6' },
+        headers: { Authorization: 'trak_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6' },
       });
 
       const result = await validateBearerToken(request);
@@ -82,7 +82,7 @@ describe('Auth Middleware', () => {
     test('returns error for invalid Bearer format - wrong prefix', async () => {
       const request = new Request('http://localhost/api/test', {
         method: 'GET',
-        headers: { Authorization: 'Basic nsk_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6' },
+        headers: { Authorization: 'Basic trak_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6' },
       });
 
       const result = await validateBearerToken(request);
@@ -107,7 +107,7 @@ describe('Auth Middleware', () => {
       // Valid format but never created in database
       const request = new Request('http://localhost/api/test', {
         method: 'GET',
-        headers: { Authorization: 'Bearer nsk_nonexistent00000000000000000000' },
+        headers: { Authorization: 'Bearer trak_nonexistent00000000000000000000' },
       });
 
       const result = await validateBearerToken(request);
@@ -417,8 +417,8 @@ describe('Auth Middleware', () => {
 
 describe('Hash Security', () => {
   test('hash is not reversible - different key produces different hash', () => {
-    const key1 = 'nsk_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-    const key2 = 'nsk_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+    const key1 = 'trak_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+    const key2 = 'trak_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 
     const hash1 = hashSdkKey(key1);
     const hash2 = hashSdkKey(key2);
@@ -432,11 +432,11 @@ describe('Hash Security', () => {
   });
 
   test('cannot derive key from hash', () => {
-    const key = 'nsk_testkey1234567890abcdefghij';
+    const key = 'trak_testkey1234567890abcdefghij';
     const hash = hashSdkKey(key);
 
     // Hash should not contain the key or any identifiable part
-    expect(hash).not.toContain('nsk_');
+    expect(hash).not.toContain('trak_');
     expect(hash).not.toContain('testkey');
     expect(hash).not.toContain('1234567890');
 
@@ -445,7 +445,7 @@ describe('Hash Security', () => {
   });
 
   test('hash is deterministic', () => {
-    const key = 'nsk_deterministictest0000000000';
+    const key = 'trak_deterministictest0000000000';
 
     const hash1 = hashSdkKey(key);
     const hash2 = hashSdkKey(key);
@@ -456,8 +456,8 @@ describe('Hash Security', () => {
   });
 
   test('small key changes produce completely different hashes', () => {
-    const key1 = 'nsk_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6';
-    const key2 = 'nsk_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p7'; // Only last char different
+    const key1 = 'trak_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6';
+    const key2 = 'trak_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p7'; // Only last char different
 
     const hash1 = hashSdkKey(key1);
     const hash2 = hashSdkKey(key2);
@@ -556,8 +556,8 @@ describe('End-to-End Auth Flow', () => {
     const invalidKeys = [
       'invalid',
       'sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', // Wrong prefix
-      'nsk_short', // Too short
-      'nsk_UPPERCASE0000000000000000000000', // Uppercase not allowed
+      'trak_short', // Too short
+      'trak_UPPERCASE0000000000000000000000', // Uppercase not allowed
       '', // Empty
     ];
 
