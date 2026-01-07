@@ -20,13 +20,47 @@ const BUN_PATH = 'bun';
 const CLI_SCRIPT = join(process.cwd(), 'src/cli/index.ts');
 
 /**
+ * Parse a command string into an array of arguments, handling quoted strings
+ */
+function parseArgs(input: string): string[] {
+  const args: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  let quoteChar = '';
+
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i];
+
+    if ((char === '"' || char === "'") && !inQuotes) {
+      inQuotes = true;
+      quoteChar = char;
+    } else if (char === quoteChar && inQuotes) {
+      inQuotes = false;
+      quoteChar = '';
+    } else if (char === ' ' && !inQuotes) {
+      if (current) {
+        args.push(current);
+        current = '';
+      }
+    } else {
+      current += char;
+    }
+  }
+
+  if (current) {
+    args.push(current);
+  }
+
+  return args;
+}
+
+/**
  * Execute a board command and return the output
  * Uses execFileSync with args array to prevent shell injection
  */
 function board(args: string): string {
   try {
-    // Split args and use execFileSync to avoid shell injection
-    const argList = ['run', CLI_SCRIPT, '--db-path', TEST_DB_PATH, ...args.split(/\s+/).filter(Boolean)];
+    const argList = ['run', CLI_SCRIPT, '--db-path', TEST_DB_PATH, ...parseArgs(args)];
     return execFileSync(BUN_PATH, argList, {
       encoding: 'utf-8',
       timeout: 10000,
@@ -42,7 +76,7 @@ function board(args: string): string {
  */
 function boardFail(args: string): { stdout: string; stderr: string; exitCode: number } {
   try {
-    const argList = ['run', CLI_SCRIPT, '--db-path', TEST_DB_PATH, ...args.split(/\s+/).filter(Boolean)];
+    const argList = ['run', CLI_SCRIPT, '--db-path', TEST_DB_PATH, ...parseArgs(args)];
     const stdout = execFileSync(BUN_PATH, argList, {
       encoding: 'utf-8',
       timeout: 10000,
