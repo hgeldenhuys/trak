@@ -27,33 +27,104 @@ elif [ -f "./src/tui/index.tsx" ] && grep -q '"name": "trak-board"' ./package.js
     TRAK_DIR="."
 fi
 
-# Reset terminal on exit
-cleanup() {
-    # Reset terminal: show cursor, exit alt screen, reset modes
-    printf '\033[?25h\033[?1049l\033[?1000l\033[?1002l\033[?1003l\033[?1006l\033[?2004l\033[0m\033c'
+# Create temp file for capturing stderr
+ERROR_LOG=$(mktemp 2>/dev/null || echo "/tmp/board-tui-error-$$")
+
+# Reset terminal without clearing screen (preserves error output)
+cleanup_soft() {
+    # Restore terminal: show cursor, exit alt screen, reset modes
+    # Does NOT use \033c (full reset) to preserve error messages
+    printf '\033[?25h\033[?1049l\033[?1000l\033[?1002l\033[?1003l\033[?1006l\033[?2004l\033[0m'
 }
-trap cleanup EXIT INT TERM
+
+# Full cleanup on normal exit
+cleanup_full() {
+    cleanup_soft
+    rm -f "$ERROR_LOG" 2>/dev/null
+}
+
+trap cleanup_soft INT TERM
+
+run_tui() {
+    local TUI_PATH="$1"
+    shift
+
+    # Run TUI, capturing stderr to log file while still showing it
+    bun run "$TUI_PATH" "$@" 2> >(tee "$ERROR_LOG" >&2)
+    EXIT_CODE=$?
+
+    # Soft reset terminal (don't clear screen)
+    cleanup_soft
+
+    # If failed, show error info
+    if [ $EXIT_CODE -ne 0 ]; then
+        echo ""
+        echo "board-tui exited with code $EXIT_CODE"
+        if [ -s "$ERROR_LOG" ]; then
+            echo ""
+            echo "=== Error Output ==="
+            cat "$ERROR_LOG"
+            echo "===================="
+        fi
+        echo ""
+        echo "Troubleshooting:"
+        echo "  1. Ensure bun is installed: curl -fsSL https://bun.sh/install | bash"
+        echo "  2. Check if database exists: ls -la .board.db ~/.board/data.db"
+        echo "  3. Run with debug: BOARD_DEBUG=1 board-tui"
+        echo "  4. Try direct: cd $TRAK_DIR && TMPDIR=/tmp bun run src/tui/index.tsx"
+    fi
+
+    rm -f "$ERROR_LOG" 2>/dev/null
+    return $EXIT_CODE
+}
+
+run_binary() {
+    local BINARY="$1"
+    shift
+
+    "$BINARY" "$@" 2> >(tee "$ERROR_LOG" >&2)
+    EXIT_CODE=$?
+
+    cleanup_soft
+
+    if [ $EXIT_CODE -ne 0 ]; then
+        echo ""
+        echo "board-tui binary exited with code $EXIT_CODE"
+        if [ -s "$ERROR_LOG" ]; then
+            echo ""
+            echo "=== Error Output ==="
+            cat "$ERROR_LOG"
+            echo "===================="
+        fi
+    fi
+
+    rm -f "$ERROR_LOG" 2>/dev/null
+    return $EXIT_CODE
+}
 
 if [ -n "$TRAK_DIR" ]; then
-    # Run from package dir but keep user's cwd for database resolution
-    # Don't use exec - we need the trap to run after bun exits
-    bun run "$TRAK_DIR/src/tui/index.tsx" "$@"
-    EXIT_CODE=$?
-    cleanup
-    exit $EXIT_CODE
+    run_tui "$TRAK_DIR/src/tui/index.tsx" "$@"
+    exit $?
 else
     # Fallback to binary if available
     BINARY="$SCRIPT_DIR/.board-tui-binary"
     if [ -f "$BINARY" ]; then
-        "$BINARY" "$@"
-        EXIT_CODE=$?
-        cleanup
-        exit $EXIT_CODE
+        run_binary "$BINARY" "$@"
+        exit $?
     else
         echo "Error: trak project not found"
         echo ""
-        echo "Run from the trak directory:"
-        echo "  cd /path/to/trak && TMPDIR=/tmp bun run tui"
+        echo "Checked locations:"
+        echo "  - $SCRIPT_DIR/../src/tui/index.tsx"
+        echo "  - $HOME/WebstormProjects/trak/src/tui/index.tsx"
+        echo "  - ./src/tui/index.tsx"
+        echo ""
+        echo "Solutions:"
+        echo "  1. Run from the trak directory:"
+        echo "     cd /path/to/trak && TMPDIR=/tmp bun run tui"
+        echo ""
+        echo "  2. Install globally:"
+        echo "     npm install -g trak-board"
         exit 1
     fi
 fi
