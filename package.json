@@ -1,6 +1,6 @@
 {
   "name": "trak-board",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Board CLI and TUI for story and task management - project-centric agile workflow",
   "author": "Herman Geldenhuys",
   "license": "MIT",
